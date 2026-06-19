@@ -4,6 +4,15 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Mesura — Objectieve gezichtsanalyse</title>
+<meta name="description" content="Objectieve gezichtsanalyse in millimeters — 478 punten, je iris als liniaal. Gratis, privé, op je eigen toestel.">
+<meta property="og:title" content="Mesura — Objectieve gezichtsanalyse">
+<meta property="og:description" content="Meten, niet beoordelen. 478 gezichtspunten + iris als liniaal = echte mm. Gratis & privé.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://offertespoeddakservice-source.github.io/mesura/">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Mesura — Meet je gezicht">
+<meta name="twitter:description" content="Gratis gezichtsanalyse in echte mm. Geen rating, geen oordeel. Privé op je toestel.">
+<link rel="canonical" href="https://offertespoeddakservice-source.github.io/mesura/">
 <style>
   :root{
     --bg:#f3ede2; --card:#fbf7ef; --card2:#efe8da; --line:#e0d6c4; --line2:#d0c3aa;
@@ -147,7 +156,7 @@
     <p class="sub">We meten je gezicht echt op — met 478 punten en je eigen iris als liniaal. In millimeters, niet geraden.</p>
     <p class="mission">Gemaakt om je te helpen verbeteren — niet om je te beoordelen. Geen rating, geen oordeel; alleen je sterke punten en wat je zélf kunt doen.</p>
     <div class="card ba-card">
-      <p class="balabel">Voor/na — voorbeeld <span class="muted">(echte foto's; voeg <code>voorbeeld-voor.jpg</code> &amp; <code>voorbeeld-na.jpg</code> toe aan de map)</span></p>
+      <p class="balabel">Voor / Na</p>
       <div class="ba" id="ba">
         <div class="ph">Hier komen echte voor/na-foto's<span>(met toestemming van de persoon)</span></div>
         <img class="ba-img" src="voorbeeld-voor.jpg" alt="voor" onerror="this.remove()">
@@ -165,7 +174,7 @@
     </div>
     <div class="card center" id="rescanCard" style="display:none">
       <b>Welkom terug</b><p class="muted" id="prevInfo" style="margin:6px 0 12px"></p>
-      <button class="btn gold" id="toRescan">Vergelijk met je vorige meting · €10</button>
+      <button class="btn gold" id="toRescan">Vergelijk met je vorige meting</button>
     </div>
   </section>
 
@@ -218,15 +227,15 @@
         </div>
         <div style="height:12px"></div>
         <button class="btn" id="startCam">Camera aanzetten</button>
-        <button class="btn" id="shoot" style="display:none" disabled>📸 Vastleggen</button>
+        <button class="btn" id="shoot" style="display:none" disabled>Vastleggen</button>
       </div>
 
       <div class="pane" id="paneUp">
         <p class="instr" style="margin:0 0 12px">Let op: upload is minder betrouwbaar — hoek en afstand variëren per foto. Voor herhaalbare metingen: gebruik <b>Maak foto</b>. Te gedraaide foto's worden geweigerd.</p>
         <div class="slots">
-          <label class="slot"><span class="tag">Verplicht</span><span class="lab">🙂 Frontaal</span><span class="hint">recht vooruit</span><input type="file" accept="image/*" data-input="front"></label>
-          <label class="slot"><span class="opt">optie</span><span class="lab">😐 Links</span><span class="hint">90° profiel</span><input type="file" accept="image/*" data-input="left"></label>
-          <label class="slot"><span class="opt">optie</span><span class="lab">🙃 Rechts</span><span class="hint">90° profiel</span><input type="file" accept="image/*" data-input="right"></label>
+          <label class="slot"><span class="tag">Verplicht</span><span class="lab">Frontaal</span><span class="hint">recht vooruit</span><input type="file" accept="image/*" data-input="front"></label>
+          <label class="slot"><span class="opt">optie</span><span class="lab">Links profiel</span><span class="hint">90° profiel</span><input type="file" accept="image/*" data-input="left"></label>
+          <label class="slot"><span class="opt">optie</span><span class="lab">Rechts profiel</span><span class="hint">90° profiel</span><input type="file" accept="image/*" data-input="right"></label>
         </div>
         <button class="btn" id="analyzeUp" disabled style="margin-top:12px">Analyseer</button>
       </div>
@@ -274,13 +283,15 @@ const photos={front:null,left:null,right:null}; // {src(Image/canvas), P(px land
       baseOptions:{modelAssetPath:"https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task"},
       runningMode:"IMAGE",numFaces:1});
     $("#enginePill").textContent="✓ engine gereed";
-  }catch(e){ $("#enginePill").textContent="engine fout"; }
+  }catch(e){ $("#enginePill").textContent="engine fout — klik om opnieuw te proberen"; $("#enginePill").style.cursor="pointer"; $("#enginePill").onclick=()=>location.reload(); }
 })();
 async function ensureMode(m){ if(curMode!==m){ await landmarker.setOptions({runningMode:m}); curMode=m; } }
 
 // prior scan?
 const prev=JSON.parse(localStorage.getItem("mesura_prev")||"null");
 if(prev){ $("#rescanCard").style.display=""; $("#prevInfo").textContent=`Laatste meting: ${prev.date}.`; }
+const urlCode=(new URLSearchParams(location.search).get("code")||"").toUpperCase().replace(/[^A-Z0-9]/g,"");
+if(urlCode) sessionStorage.setItem("mesura_code",urlCode);
 
 // nav
 $("#consent").addEventListener("change",e=>$("#toInfo").disabled=!e.target.checked);
@@ -298,7 +309,7 @@ $("#restart").addEventListener("click",()=>location.reload());
 
 // voor/na-schuiver
 (()=>{ const ba=$("#ba"); if(!ba) return; const after=ba.querySelector(".after"), handle=ba.querySelector(".handle"); let drag=false;
-  setTimeout(()=>{ if(!ba.querySelector(".ba-img")){ handle.style.display="none"; after.style.width="0"; ba.querySelectorAll(".tagb,.taga").forEach(t=>t.style.display="none"); const cap=ba.parentElement.querySelector("p.muted"); if(cap) cap.style.display="none"; } },500);
+  setTimeout(()=>{ if(!ba.querySelector(".ba-img")){ const card=ba.closest(".ba-card"); if(card) card.style.display="none"; } },600);
   const setX=x=>{ const r=ba.getBoundingClientRect(); let p=Math.max(0,Math.min(1,(x-r.left)/r.width)); after.style.width=(p*100)+"%"; handle.style.left=(p*100)+"%"; };
   const pt=e=>(e.touches&&e.touches[0]?e.touches[0]:e).clientX;
   ba.addEventListener("mousedown",e=>{drag=true;setX(pt(e));});
@@ -327,15 +338,17 @@ $$("input[data-input]").forEach(inp=>inp.addEventListener("change",e=>{
 }));
 $("#analyzeUp").addEventListener("click",async()=>{
   if(!photos.front) return;
-  $("#status").textContent="Analyseren…";
+  if(!landmarker){ $("#status").textContent="Engine laadt nog — wacht even en probeer opnieuw"; return; }
+  const btn=$("#analyzeUp"); btn.disabled=true; btn.textContent="Analyseren…";
+  $("#status").textContent="";
   try{
     await ensureMode("IMAGE");
     for(const k of ["front","left","right"]) if(photos[k]&&!photos[k].P){ const P=detectImg(photos[k].src); if(!P){ if(k==="front"){$("#status").textContent="Geen gezicht op de frontale foto.";return;} photos[k]=null; } else photos[k].P=P; }
     const Pf=photos.front.P, ih=photos.front.src.naturalHeight||photos.front.src.height;
-    if(turned(Pf)>0.09){ $("#status").innerHTML="Let op: te gedraaid. Neem de foto <b>recht van voren</b> — of gebruik de camera-mal."; return; }
-    if(D(Pf[L.top],Pf[L.chin])/ih<0.3){ $("#status").innerHTML="Gezicht te klein in beeld. Vul meer van de foto met je gezicht — of gebruik de camera-mal."; return; }
+    if(turned(Pf)>0.09){ btn.disabled=false; btn.textContent="Analyseer"; $("#status").innerHTML="Let op: te gedraaid. Neem de foto <b>recht van voren</b> — of gebruik de camera-mal."; return; }
+    if(D(Pf[L.top],Pf[L.chin])/ih<0.3){ btn.disabled=false; btn.textContent="Analyseer"; $("#status").innerHTML="Gezicht te klein in beeld. Vul meer van de foto met je gezicht — of gebruik de camera-mal."; return; }
     runReport();
-  }catch(e){ $("#status").textContent="Fout: "+e.message; }
+  }catch(e){ btn.disabled=false; btn.textContent="Analyseer"; $("#status").textContent="Fout: "+e.message; }
 });
 
 // ---- camera with face-mal ----
@@ -343,6 +356,7 @@ let stream=null, raf=null, valid=false, validSince=0;
 $("#startCam").addEventListener("click",startCam);
 $("#shoot").addEventListener("click",captureCam);
 async function startCam(){
+  if(!landmarker){ $("#camStat").textContent="Engine laadt nog — wacht even en probeer opnieuw"; return; }
   try{
     await ensureMode("VIDEO");
     stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"user",width:{ideal:720},height:{ideal:960}},audio:false});
@@ -376,7 +390,7 @@ function loop(){
   $("#ovalRing").setAttribute("stroke",ok?"#34d399":"#fbbf24");
   if(ok && !validSince) validSince=performance.now();
   if(!ok) validSince=0;
-  if(ok && performance.now()-validSince>700) captureCam(); // auto na 0.7s stabiel
+  if(ok && performance.now()-validSince>1500) captureCam(); // auto na 1.5s stabiel
 }
 function captureCam(){
   const v=$("#video"); if(!v.videoWidth||!valid) return;
@@ -415,7 +429,7 @@ function rangeScore(v,min,max,iLo,iHi){ if(v>=iLo&&v<=iHi){const c=(iLo+iHi)/2,h
 
 // skin (maakbare pillar) — sample huidvlakken
 function skinScore(srcCanvasOrImg,P){
-  const w=srcCanvasOrImg.width||srcCanvasOrImg.naturalWidth, h=srcCanvasOrImg.height||srcCanvasOrImg.naturalHeight;
+  const w=srcCanvasOrImg.naturalWidth||srcCanvasOrImg.width, h=srcCanvasOrImg.naturalHeight||srcCanvasOrImg.height;
   const c=document.createElement("canvas"); c.width=w; c.height=h; const cx=c.getContext("2d");
   try{ cx.drawImage(srcCanvasOrImg,0,0,w,h); }catch(e){ return null; }
   const patch=(p,r=Math.max(6,w*0.03))=>{ try{ return cx.getImageData(Math.max(0,p.x-r),Math.max(0,p.y-r),r*2,r*2).data; }catch(e){ return null; } };
@@ -586,11 +600,23 @@ function deltaHTML(m){ if(!prev||!prev.metrics) return "";
   const d=+(m.v-p.v).toFixed(2); if(!d) return ` <span class="delta muted">=</span>`;
   const up=d>0; return ` <span class="delta" style="color:${up?'var(--good)':'var(--bad)'}">${up?'▲':'▼'}${Math.abs(d)}</span>`; }
 
+function renderUpsell(u){
+  if(!u) return '';
+  const q=encodeURIComponent(u.b);
+  return `<p class="opt"><i>Optioneel:</i> <a href="https://www.bol.com/nl/nl/s/?searchtext=${q}" target="_blank" rel="noopener" style="color:var(--accent2)">${u.b}</a> — ${u.s}</p>`;
+}
 function renderMetrics(metrics){
+  const inRange=metrics.filter(m=>m.v>=m.iLo&&m.v<=m.iHi).length;
   const teaserName=[...metrics].sort((a,b)=>a.score-b.score)[0].name;
   const groups=[["maakbaar","Maakbaar — je snelste winst"],["deels","Deels te beïnvloeden"],["structureel","Structureel — je basis"]];
+  const savedCode=sessionStorage.getItem("mesura_code")||"";
   let html="";
   html+=`<p class="missionR">Dit rapport helpt je verbeteren — het is geen oordeel over je gezicht.</p>`;
+  html+=`<div class="card" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;padding:18px 22px">
+    <div><div style="font-size:30px;font-weight:800;color:var(--good);letter-spacing:-1px">${inRange}<span style="font-size:16px;font-weight:500;color:var(--muted);letter-spacing:0">/${metrics.length}</span></div>
+    <p style="margin:2px 0 0;color:var(--muted);font-size:12.5px">punten binnen normaal bereik</p></div>
+    <button id="shareBtn" class="btn ghost" style="width:auto;padding:10px 18px;font-size:13.5px">Deel je scan</button>
+  </div>`;
   html+=`<div class="card reliab"><b>Hoe eerlijk is deze test?</b>
     <ul class="tiplist">
       <li><b>Klopt goed:</b> het opmeten van je gezicht op één duidelijke, rechte foto.</li>
@@ -603,53 +629,54 @@ function renderMetrics(metrics){
     if(prev.metrics) metrics.forEach(m=>{const pm=prev.metrics.find(x=>x.name===m.name);if(!pm)return;tot++;if(m.score>rangeScore(pm.v,m.min,m.max,m.iLo,m.iHi))imp++;});
     html+=`<div class="card summary"><b>Vergelijking met ${prev.date}</b>
       <div class="big" style="color:var(--good)">${tot>0?`${imp} van ${tot} punten verbeterd`:`Voortgang telt vanaf nu`}</div>
-      ${prev.photo?`<div class="refbox" style="text-align:left"><img src="${prev.photo}" alt="toen"><div><b>Toen → Nu</b><br><span>Links je vorige foto, hierboven je nieuwe meting (▲/▼ per punt).</span></div></div>`:''}
-      <p class="muted" style="font-size:12px;margin:8px 0 0">▲/▼ = verandering t.o.v. je vorige meting.</p></div>`;
+      ${prev.photo?`<div class="refbox" style="text-align:left"><img src="${prev.photo}" alt="toen"><div><b>Toen → Nu</b><br><span>▲/▼ = verandering t.o.v. je vorige meting.</span></div></div>`:''}
+    </div>`;
   }
   for(const [pk,title] of groups){
     const list=metrics.filter(m=>m.pillar===pk); if(!list.length) continue;
     html+=`<h2>${title}</h2>`;
     for(const m of list){
-      const isT=m.name===teaserName, locked=!isT, pl=pillLabel[m.pillar], st=statusLabel(m);
-      html+=`<div class="metric ${isT?'teaser':''}">
-        ${isT?'<span class="badge">Jouw #1 kans · meting gratis</span>':''}
+      const isT=m.name===teaserName, pl=pillLabel[m.pillar], st=statusLabel(m);
+      html+=`<div class="metric${isT?' teaser':''}">
+        ${isT?'<span class="badge">Jouw #1 kans</span>':''}
         <div class="top"><h3>${m.name}${m.beta?'<span class="beta">beta</span>':''}<span class="pillTag ${pl[0]}">${pl[1]}</span></h3></div>
-        <div class="measure">
-          <div class="${locked?'lk':''}">
-            <span class="val">${m.v}${m.unit?(' '+m.unit):''}${deltaHTML(m)}</span>
-            <div class="statusrow" style="color:${st.c}">● ${st.t}</div>
-            ${gauge(m)}
-          </div>
-          ${locked?'<div class="lockicon">Exacte meting — ontgrendel hieronder (tips zijn gratis)</div>':''}
-        </div>
+        <span class="val">${m.v}${m.unit?' '+m.unit:''}${deltaHTML(m)}</span>
+        <div class="statusrow" style="color:${st.c}">● ${st.t}</div>
+        ${gauge(m)}
         ${m.what?`<p class="what">${m.what}</p>`:''}
         ${m.tips?`<p class="tiplabel">Zelf doen — gratis:</p><ul class="tiplist">${m.tips.map(t=>`<li>${t}</li>`).join("")}</ul>`:''}
-        ${m.upsell?`<p class="opt"><i>Optioneel, kost geld:</i> ${m.upsell.b} — ${m.upsell.s}</p>`:''}
+        ${renderUpsell(m.upsell)}
       </div>`;
     }
   }
-  const price=ctx.rescan?"€10":"€29", old=ctx.rescan?"€19":"€29";
-  html+=`<div class="card pay" id="paycard">
-    <div class="price">${ctx.rescan?`<s>${old}</s>`:''}<span id="finalPrice">${price}</span></div>
-    <p class="muted" style="margin:4px 0 0">${ctx.rescan?'Vergelijkingsrapport':'Eenmalig'} · ${metrics.length} metrics · voortgang levenslang bewaard</p>
-    <div class="codeRow"><input id="code" placeholder="Code van een creator?"><button class="btn ghost" style="width:auto;padding:12px 16px" id="applyCode">Toepassen</button></div>
-    <div class="ok" id="codeMsg"></div>
-    <button class="btn" id="unlock">Ontgrendel volledig rapport</button>
-    <div class="foot">478 ankerpunten, geschaald via je iris. Indicatief & cosmetisch — geen medisch advies. 16+. Verwerkt op je toestel.</div>
+  html+=`<div class="card" id="savecard">
+    <b style="font-size:15px">Bewaar je meting & vergelijk over 30 dagen</b>
+    <p class="muted" style="font-size:13px;margin:8px 0 14px">Sla je resultaten op je toestel op. Doe na ~30 dagen een rescan om te zien hoeveel je verbeterd bent — zelfde licht, zelfde hoek.</p>
+    ${savedCode
+      ? `<p style="font-size:12px;color:var(--good);margin:0 0 12px">Code ${savedCode} actief.</p>`
+      : `<div class="codeRow" style="margin:0 0 10px"><input id="code" placeholder="Code van een creator?"><button class="btn ghost" style="width:auto;padding:12px 14px;font-size:13px" id="applyCode">Toepassen</button></div><div class="ok" id="codeMsg"></div>`}
+    <button class="btn" id="saveScan">Meting opslaan</button>
+    <div class="foot">Opgeslagen in je browser. Geen account, geen upload. · 478 ankerpunten, iris-kalibratie. Indicatief & cosmetisch — geen medisch advies. 16+.</div>
   </div>`;
   $("#metricsHost").innerHTML=html;
 
-  $("#applyCode").onclick=()=>{const c=$("#code").value.trim().toUpperCase();
-    if(c.length>=3){$("#finalPrice").textContent=ctx.rescan?"€5":"€24";$("#codeMsg").textContent=`✓ Code ${c} — €5 korting (€5 naar de creator).`;window.__code=c;}
-    else{$("#codeMsg").style.color="var(--bad)";$("#codeMsg").textContent="Ongeldige code.";}};
-  $("#unlock").onclick=()=>{
-    $$(".measure .lk").forEach(el=>el.classList.remove("lk"));
-    $$(".lockicon").forEach(el=>el.remove());
-    let photoURL=""; try{ const s=photos.front.src, w=s.width||s.naturalWidth, h=s.height||s.naturalHeight;
-      const tc=document.createElement("canvas"); tc.width=160; tc.height=Math.round(160*h/w); tc.getContext("2d").drawImage(s,0,0,tc.width,tc.height); photoURL=tc.toDataURL("image/jpeg",0.6);
-    }catch(e){}
+  const shareUrl="https://offertespoeddakservice-source.github.io/mesura/"+(savedCode?`?code=${savedCode}`:"");
+  $("#shareBtn").onclick=()=>{
+    if(navigator.share){ navigator.share({title:"Mijn Mesura scan",text:`${inRange} van ${metrics.length} punten binnen normaal bereik — doe jij ook een gratis gezichtsmeting?`,url:shareUrl}).catch(()=>{}); }
+    else{ navigator.clipboard?.writeText(shareUrl).then(()=>{ const b=$("#shareBtn"); b.textContent="✓ Link gekopieerd"; setTimeout(()=>b.textContent="Deel je scan",2500); }); }
+  };
+  if(!savedCode&&$("#applyCode")){
+    $("#applyCode").onclick=()=>{
+      const c=$("#code").value.trim().toUpperCase().replace(/[^A-Z0-9]/g,"");
+      if(c.length>=3){ sessionStorage.setItem("mesura_code",c); $("#codeMsg").textContent=`✓ Code ${c} toegepast.`; setTimeout(()=>{ $("#savecard").querySelector("input")&&($("#savecard").querySelector(".codeRow").innerHTML=`<p style="font-size:12px;color:var(--good);margin:0">Code ${c} actief.</p>`); },600); }
+      else{ $("#codeMsg").style.color="var(--bad)"; $("#codeMsg").textContent="Voer een geldige code in (min. 3 tekens)."; }
+    };
+  }
+  $("#saveScan").onclick=()=>{
+    let photoURL=""; try{ const s=photos.front.src,w=s.naturalWidth||s.width,h=s.naturalHeight||s.height;
+      const tc=document.createElement("canvas");tc.width=160;tc.height=Math.round(160*h/w);tc.getContext("2d").drawImage(s,0,0,tc.width,tc.height);photoURL=tc.toDataURL("image/jpeg",0.6); }catch(e){}
     localStorage.setItem("mesura_prev",JSON.stringify({date:new Date().toLocaleDateString("nl-NL"),metrics:lastMetrics.map(m=>({name:m.name,v:m.v})),photo:photoURL}));
-    $("#paycard").innerHTML='<h3 style="margin:0">Rapport ontgrendeld &amp; opgeslagen</h3><p class="muted" style="margin:6px 0 0">Doe over ~30 dagen (zelfde licht, moment &amp; hoek) een rescan om je voortgang te zien.</p>';
+    $("#savecard").innerHTML='<b style="font-size:15px">Opgeslagen ✓</b><p class="muted" style="font-size:13px;margin:6px 0 0">Over ~30 dagen: klik op "Vergelijk met je vorige meting" op de startpagina. Zelfde licht, hoek en tijdstip voor een eerlijke vergelijking.</p>';
   };
 }
 </script>
