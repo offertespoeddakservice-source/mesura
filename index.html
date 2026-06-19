@@ -340,7 +340,7 @@
       <div class="overlay-wrap">
         <canvas id="cv" width="300" height="400"></canvas>
         <div class="mm"><h3 style="margin:0 0 8px;font-size:14px">Afmetingen (mm)</h3><div id="mmList"></div>
-          <p class="foot" style="text-align:left;margin-top:10px">Geschaald via iris-diameter (≈11,7&nbsp;mm). Identieke foto → identiek resultaat.</p></div>
+          <p class="foot" style="text-align:left;margin-top:10px">Geschaald via je iris (≈11,7&nbsp;mm); we middelen meerdere frames voor stabiliteit. Reken op ±2-3&nbsp;mm — gebruik vooral de verhoudingen en je eigen voortgang.</p></div>
       </div>
     </div>
     <div id="metricsHost"></div>
@@ -433,7 +433,7 @@ $("#analyzeUp").addEventListener("click",async()=>{
 });
 
 // ---- camera with face-mal ----
-let stream=null, raf=null, valid=false, validSince=0;
+let stream=null, raf=null, valid=false, validSince=0, capturing=false;
 $("#startCam").addEventListener("click",startCam);
 $("#shoot").addEventListener("click",captureCam);
 async function startCam(){
@@ -471,22 +471,35 @@ function loop(){
   $("#ovalRing").setAttribute("stroke",ok?"#34d399":"#fbbf24");
   if(ok && !validSince) validSince=performance.now();
   if(!ok) validSince=0;
-  if(ok && performance.now()-validSince>1500) captureCam(); // auto na 1.5s stabiel
+  if(ok && !capturing && performance.now()-validSince>1500) captureCam(); // auto na 1.5s stabiel
 }
-function captureCam(){
-  const v=$("#video"); if(!v.videoWidth||!valid) return;
-  // Vries het frame in als statische canvas — daarna IMAGE-mode detectie
-  // Dit geeft deterministische landmarks: zelfde frame → exact zelfde meting
-  const cnv=document.createElement("canvas"); cnv.width=v.videoWidth; cnv.height=v.videoHeight;
-  cnv.getContext("2d").drawImage(v,0,0);
-  stopCam();
-  $("#status").textContent="Analyseren…";
-  ensureMode("IMAGE").then(()=>{
-    const P=detectImg(cnv);
-    if(!P){ $("#status").textContent="Gezicht niet herkend in foto — probeer opnieuw."; show("capture"); startCam(); return; }
-    photos.front={src:cnv,P};
-    showConfirmScreen(cnv,P);
-  }).catch(e=>{ $("#status").textContent="Fout bij analyseren: "+e.message; show("capture"); });
+async function captureCam(){
+  const v=$("#video"); if(!v.videoWidth||!valid||capturing) return;
+  capturing=true;
+  try{
+    // Burst: pak meerdere frames terwijl je stilstaat, meet ze los, neem de mediaan.
+    // Dit dempt de pixel-ruis in de iris-liniaal die anders elke scan andere mm geeft.
+    $("#status").textContent="Even stilhouden…";
+    const frames=[], N=7;
+    for(let i=0;i<N;i++){
+      const cn=document.createElement("canvas"); cn.width=v.videoWidth; cn.height=v.videoHeight;
+      cn.getContext("2d").drawImage(v,0,0); frames.push(cn);
+      await new Promise(r=>setTimeout(r,45));
+    }
+    stopCam();
+    $("#status").textContent="Analyseren…";
+    await ensureMode("IMAGE");
+    const sets=[];
+    for(const cn of frames){ const P=detectImg(cn); if(P) sets.push({cn,P}); }
+    if(!sets.length){ capturing=false; $("#status").textContent="Gezicht niet herkend — probeer opnieuw."; show("capture"); startCam(); return; }
+    // representatief frame = mediaan iris-grootte (zodat overlay bij de meting past)
+    const idx=[...sets].map((s,i)=>[irisMM(s.P),i]).sort((a,b)=>a[0]-b[0])[Math.floor(sets.length/2)][1];
+    const rep=sets[idx];
+    const result=medianMetrics(sets, rep.cn);
+    photos.front={src:rep.cn, P:rep.P, result};
+    capturing=false;
+    showConfirmScreen(rep.cn, rep.P);
+  }catch(e){ capturing=false; $("#status").textContent="Fout bij analyseren: "+e.message; show("capture"); }
 }
 
 function showConfirmScreen(cnv,P){
@@ -557,8 +570,9 @@ function rollCorrect(P){ const a=P[L.rIris],b=P[L.lIris]; const ang=Math.atan2(b
   return P.map(p=>{const dx=p.x-cx,dy=p.y-cy;return{x:cx+dx*co-dy*si,y:cy+dx*si+dy*co};}); }
 // hoe ver het hoofd weggedraaid is (yaw) — 0 = recht van voren
 function turned(P){ const n=P[L.noseTip],lh=Math.abs(P[L.cheekL].x-n.x),rh=Math.abs(n.x-P[L.cheekR].x); return Math.abs(lh-rh)/((lh+rh)||1); }
-function irisMM(P){ const rd=(D(P[L.rIrisR],P[L.rIrisL])+D(P[L.rIrisT],P[L.rIrisB]))/2,
-  ld=(D(P[L.lIrisR],P[L.lIrisL])+D(P[L.lIrisT],P[L.lIrisB]))/2,dia=(rd+ld)/2; return dia>0?11.7/dia:0; }
+// iris als liniaal: alleen de HORIZONTALE diameter (links-rechts) — die randen worden
+// niet door oogleden bedekt, dus veel stabieler dan het verticale (boven-onder) gemiddelde
+function irisMM(P){ const rd=D(P[L.rIrisR],P[L.rIrisL]), ld=D(P[L.lIrisR],P[L.lIrisL]), dia=(rd+ld)/2; return dia>0?11.7/dia:0; }
 function rangeScore(v,min,max,iLo,iHi){ if(v>=iLo&&v<=iHi){const c=(iLo+iHi)/2,hw=((iHi-iLo)/2)||1;return Math.round(100-Math.min(1,Math.abs(v-c)/hw)*12);}
   const edge=v<iLo?iLo:iHi,d=Math.abs(v-edge)/((max-min)||1);return Math.max(5,Math.round(88-d*170)); }
 
@@ -739,7 +753,7 @@ function buildMetrics(P, src){
 
   const mmRows=[["Pupilafstand (PD)",D(P[L.rIris],P[L.lIris])*mm],["Gezichtsbreedte",faceW*mm],
     ["Gezichtshoogte",D(P[L.top],P[L.chin])*mm],["Mondbreedte",D(P[L.mR],P[L.mL])*mm],["Neusbreedte",D(P[L.alarR],P[L.alarL])*mm]]
-    .map(([k,v])=>[k,(v||0).toFixed(1)+" mm"]);
+    .map(([k,v])=>[k,Math.round(v||0)+" mm"]);
   return {metrics,mmRows,mid};
 }
 function profileMetrics(P,side){
@@ -756,10 +770,27 @@ function profileMetrics(P,side){
   ];
 }
 
+// neem de mediaan van meerdere frame-metingen → veel stabieler dan één enkel frame
+function medianMetrics(sets){
+  const med=arr=>{ const a=arr.filter(v=>v!=null&&!isNaN(v)).sort((x,y)=>x-y); const n=a.length; if(!n) return 0; return n%2?a[(n-1)/2]:(a[n/2-1]+a[n/2])/2; };
+  const builts=sets.map(s=>buildMetrics(rollCorrect(s.P), s.cn));
+  const base=builts[Math.floor(builts.length/2)];
+  base.metrics.forEach(m=>{
+    const vals=builts.map(b=>{ const x=b.metrics.find(y=>y.name===m.name); return x?x.v:null; });
+    m.v=+med(vals).toFixed(2);
+    m.score=rangeScore(m.v,m.min,m.max,m.iLo,m.iHi);
+  });
+  base.mmRows=base.mmRows.map((row,i)=>{
+    const vals=builts.map(b=>parseFloat(b.mmRows[i][1]));
+    return [row[0], Math.round(med(vals))+" mm"];
+  });
+  return base;
+}
+
 // ================= RENDER =================
 let lastMetrics=null;
 function runReport(){
-  const F=buildMetrics(rollCorrect(photos.front.P), photos.front.src);
+  const F=photos.front.result||buildMetrics(rollCorrect(photos.front.P), photos.front.src);
   let metrics=[...F.metrics];
   for(const side of ["left","right"]) if(photos[side]&&photos[side].P) metrics=metrics.concat(profileMetrics(photos[side].P,side).map(m=>({...m,name:m.name+(side==="left"?" (L)":" (R)")})));
   lastMetrics=metrics; lastMM=F.mmRows;
