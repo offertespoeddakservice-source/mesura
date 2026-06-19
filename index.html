@@ -184,6 +184,14 @@
   .conf{display:flex;align-items:center;gap:10px;font-size:13px;margin:0 0 4px;font-weight:600}
   .conf .bar{flex:1;height:7px;border-radius:4px;background:#e6ddcb;overflow:hidden}
   .conf .bar i{display:block;height:100%;border-radius:4px}
+  .qverdict{border-radius:12px;padding:13px 15px;font-size:14.5px;font-weight:600;text-align:left;display:flex;align-items:center;gap:10px}
+  .qverdict .dotq{width:11px;height:11px;border-radius:50%;flex:0 0 auto}
+  .qverdict.good{background:#eef2ea;border:1px solid var(--good);color:#4f6b3a}
+  .qverdict.good .dotq{background:var(--good)}
+  .qverdict.warn{background:#f7efe0;border:1px solid var(--warn);color:#8a5d18}
+  .qverdict.warn .dotq{background:var(--warn)}
+  .qverdict small{display:block;font-weight:400;font-size:12.5px;opacity:.85;margin-top:2px}
+  .qwarn{background:#f7e8e3;border:1px solid var(--bad);color:#9a3f31;border-radius:12px;padding:12px 14px;font-size:13px;text-align:left;margin:14px 0 0;font-weight:600}
 </style>
 </style>
 </head>
@@ -268,8 +276,10 @@
     <p class="sub">Dit is de foto die we opmeten. Controleer hem goed — dit is je <b>definitieve</b> keuze.</p>
     <div class="card" style="text-align:center">
       <canvas id="cvConfirm" style="border-radius:14px;max-width:100%;border:1px solid var(--line)"></canvas>
-      <div id="confirmChecks" style="margin:14px 0 0;text-align:left;font-size:13px;color:var(--muted)"></div>
-      <label class="check" id="confirmSureRow" style="margin:16px 0 2px;text-align:left;background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:13px 14px"><input type="checkbox" id="confirmSure"><span>Ik weet zeker dat ik <b>deze</b> foto wil gebruiken. Ik begrijp dat opnieuw scannen een <b>nieuwe, losse meting</b> geeft — niet bedoeld om net zo lang te scannen tot een cijfer me bevalt.</span></label>
+      <div id="confirmVerdict" style="margin:14px 0 0"></div>
+      <div id="confirmChecks" style="margin:12px 0 0;text-align:left;font-size:13px;color:var(--muted)"></div>
+      <div id="confirmWarn"></div>
+      <label class="check" id="confirmSureRow" style="margin:16px 0 2px;text-align:left;background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:13px 14px"><input type="checkbox" id="confirmSure"><span>Ik weet zeker dat ik <b>deze</b> foto wil gebruiken. Opnieuw scannen maakt een <b>nieuwe, losse meting</b> die apart telt — niet bedoeld om net zo lang te scannen tot een cijfer me bevalt.</span></label>
       <button class="btn" id="confirmPhoto" style="margin-top:12px" disabled>Analyseer deze foto</button>
       <button class="btn ghost" id="retakePhoto" style="margin-top:8px">Opnieuw maken</button>
       <p class="foot" style="margin-top:10px">Zelfde foto = exact hetzelfde resultaat. Eerlijke vergelijking lukt alleen als je elke keer dezelfde opstelling (licht, hoek, afstand) gebruikt.</p>
@@ -500,12 +510,25 @@ function showConfirmScreen(cnv,P){
   const ih=cnv.height, iw=cnv.width;
   const faceH=D(P[L.top],P[L.chin])/ih;
   const yaw=turned(P.map(p=>({x:p.x/iw,y:p.y/ih})));
+  const smallFace=faceH<0.42, turnedHead=yaw>0.06;
   if(faceH<0.3) checks.push({ok:false,txt:"Gezicht te klein — kom dichter bij de camera"});
+  else if(smallFace) checks.push({ok:false,txt:"Gezicht mag groter in beeld — kom iets dichterbij"});
   else checks.push({ok:true,txt:"Gezicht goed in beeld"});
-  if(yaw>0.08) checks.push({ok:false,txt:"Hoofd iets te gedraaid — kijk recht in de lens"});
-  else checks.push({ok:true,txt:"Hoofd recht"});
-  checks.push({ok:true,txt:"Meting is determinisch — dezelfde foto geeft altijd hetzelfde resultaat"});
+  if(turnedHead) checks.push({ok:false,txt:"Hoofd iets gedraaid — kijk recht in de lens"});
+  else checks.push({ok:true,txt:"Hoofd recht vooruit"});
+  checks.push({ok:true,txt:"Meting is deterministisch — dezelfde foto geeft altijd hetzelfde resultaat"});
   $("#confirmChecks").innerHTML=checks.map(ch=>`<p style="margin:4px 0"><span style="color:${ch.ok?"var(--good)":"var(--warn)"}">${ch.ok?"✓":"⚠"}</span> ${ch.txt}</p>`).join("");
+  // verdict: hoe goed is deze foto om mee te meten?
+  const issues=[];
+  if(smallFace) issues.push("je gezicht is vrij klein in beeld");
+  if(turnedHead) issues.push("je hoofd staat iets gedraaid");
+  const perfect=issues.length===0;
+  $("#confirmVerdict").innerHTML = perfect
+    ? `<div class="qverdict good"><span class="dotq"></span><span>Deze foto is <b>perfect</b> om mee te meten<small>Scherp, recht en groot in beeld — ideaal voor een betrouwbare meting.</small></span></div>`
+    : `<div class="qverdict warn"><span class="dotq"></span><span>Deze foto <b>kan beter</b><small>${issues.join(" en ")}. Een nieuwe foto geeft waarschijnlijk een nauwkeurigere meting.</small></span></div>`;
+  // extra waarschuwing als de foto niet ideaal is
+  $("#confirmWarn").innerHTML = perfect ? "" :
+    `<div class="qwarn">Weet je zeker dat je déze foto wil gebruiken in plaats van een nieuwe, betere te maken?</div>`;
   $("#confirmSure").checked=false; $("#confirmPhoto").disabled=true; // elke keer opnieuw bevestigen
   show("confirm");
 }
