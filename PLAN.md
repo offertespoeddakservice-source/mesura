@@ -20,7 +20,8 @@ Een **gratis, privé web-tool** die je gezicht écht opmeet (in millimeters) en 
 ## Waar het nu staat
 - ✅ Werkende web-app: camera-mal, meting (478 punten + iris→mm), rapport, rescan-vergelijking met oude foto, man/vrouw-tips, privacy-pagina.
 - ✅ **Online (live)**: https://offertespoeddakservice-source.github.io/mesura/ — GitHub Pages, repo `offertespoeddakservice-source/mesura`.
-- ⬜ Geen echte betaling (gesimuleerd).
+- ✅ **20+ verbeteringen (jun 2026)**: alle metrics zichtbaar (geen blur), progress-kaart (X/Y bereik), deel-knop (Web Share API), affiliate-links via bol.com, creator-code via URL-param (?code=NAAM), save-kaart vervangt valse €29-paywall, OG/SEO-meta, crash-fixes engine-null, emoji-vrij, betere camera-timing.
+- ⬜ Geen echte betaling — model = gratis scan + affiliate-links + creator-codes. Premium (save/compare) is voorlopig gratis om traction te bouwen.
 - ⬜ Nog geen influencer-test gedaan.
 - Bestanden: `~/glowscan/` (`index.html` + `README.md` + dit plan).
 
