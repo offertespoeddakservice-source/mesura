@@ -206,6 +206,17 @@
   details.mdetails[open]>summary::before{content:"– "}
   details.mdetails[open]>summary{color:var(--muted2)}
   details.mdetails .what{margin-top:8px}
+  .explain{display:flex;gap:14px;align-items:flex-start;margin-top:8px}
+  .cart{flex:0 0 86px;width:86px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:7px}
+  .cart svg{width:100%;height:auto;display:block}
+  .exptext{flex:1;min-width:0}
+  .means{font-size:13px;margin:9px 0 0;color:var(--txt);background:#f1ece3;border-radius:9px;padding:9px 11px}
+  .means b{color:var(--accent)}
+  .top3{background:linear-gradient(160deg,#f4eee3,#ece3d2)}
+  .top3 ol{list-style:none;counter-reset:t;margin:12px 0 0;padding:0}
+  .top3 li{counter-increment:t;display:flex;gap:13px;padding:12px 0;border-top:1px solid var(--line);align-items:flex-start}
+  .top3 li::before{content:counter(t);flex:0 0 auto;width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;font-weight:700;font-family:var(--font-serif);display:flex;align-items:center;justify-content:center;font-size:15px;margin-top:1px}
+  .top3 .t3b{font-weight:700;font-size:14.5px} .top3 .t3a{font-size:12.5px;color:var(--muted);margin-top:3px;line-height:1.45}
 </style>
 </style>
 </head>
@@ -921,6 +932,57 @@ function renderUpsell(arr){
   return `<div class="prodbox"><p class="prodhead">Producten die hierbij echt helpen <span>· affiliate, je betaalt niets extra</span></p><ul class="prodlist">${items}</ul></div>`;
 }
 
+// schematisch plaatje per kenmerk — laat zien WÁT we meten (geen echte foto's nodig)
+function metricArt(name){
+  const n=name.toLowerCase();
+  const face='<path d="M50 12C31 12 22 31 22 51C22 73 35 88 50 88C65 88 78 73 78 51C78 31 69 12 50 12Z" fill="none" stroke="var(--line2)" stroke-width="2.5"/>';
+  let s='';
+  if(n.includes('huid')) s=face+'<circle cx="37" cy="56" r="8" fill="var(--good)" opacity=".30"/><g fill="var(--bad)" opacity=".5"><circle cx="60" cy="50" r="1.8"/><circle cx="66" cy="55" r="1.8"/><circle cx="59" cy="61" r="1.8"/><circle cx="65" cy="47" r="1.5"/><circle cx="71" cy="53" r="1.5"/></g>';
+  else if(n.includes('lip')) s='<path d="M20 42 Q50 30 80 42 Q50 38 20 42Z" fill="var(--accent)" opacity=".45"/><path d="M20 46 Q50 68 80 46 Q50 52 20 46Z" fill="var(--accent)"/>';
+  else if(n.includes('kaak')&&n.includes('scher')) s=face+'<path d="M27 60 Q50 92 73 60" fill="none" stroke="var(--good)" stroke-width="3.5" stroke-linecap="round"/><line x1="31" y1="50" x2="45" y2="83" stroke="var(--accent)" stroke-width="1.4" stroke-dasharray="3 3"/><line x1="69" y1="50" x2="55" y2="83" stroke="var(--accent)" stroke-width="1.4" stroke-dasharray="3 3"/>';
+  else if(n.includes('lengte onderkant')) s=face+'<path d="M24 64 Q24 88 50 88 Q76 88 76 64Z" fill="var(--accent)" opacity=".14"/><line x1="25" y1="40" x2="75" y2="40" stroke="var(--line2)" stroke-width="1.4" stroke-dasharray="3 3"/><line x1="23" y1="64" x2="77" y2="64" stroke="var(--accent)" stroke-width="2"/>';
+  else if(n.includes('midden')) s=face+'<line x1="30" y1="46" x2="70" y2="46" stroke="var(--accent)" stroke-width="1.6"/><line x1="38" y1="70" x2="62" y2="70" stroke="var(--accent)" stroke-width="1.6"/><line x1="50" y1="46" x2="50" y2="70" stroke="var(--good)" stroke-width="3"/>';
+  else if(n.includes('ooghoek')) s='<path d="M20 54 Q33 44 46 50 Q33 56 20 54Z" fill="var(--accent)" opacity=".7"/><path d="M54 50 Q67 44 80 54 Q67 56 54 50Z" fill="var(--accent)" opacity=".7"/><path d="M44 50 l8 -6" stroke="var(--good)" stroke-width="2" fill="none"/><path d="M56 50 l-8 -6" stroke="var(--good)" stroke-width="2" fill="none"/>';
+  else if(n.includes('symmetrie')) s=face+'<line x1="50" y1="14" x2="50" y2="86" stroke="var(--accent)" stroke-width="1.7" stroke-dasharray="4 3"/><circle cx="38" cy="48" r="3" fill="var(--accent)" opacity=".5"/><circle cx="62" cy="48" r="3" fill="var(--accent)" opacity=".5"/>';
+  else if(n.includes('gezichtsvorm')) s=face+'<line x1="24" y1="50" x2="76" y2="50" stroke="var(--accent)" stroke-width="1.6"/><path d="M24 50l5-4M24 50l5 4M76 50l-5-4M76 50l-5 4" stroke="var(--accent)" stroke-width="1.4" fill="none"/><line x1="50" y1="14" x2="50" y2="86" stroke="var(--good)" stroke-width="1.6"/>';
+  else if(n.includes('afstand tussen')) s='<circle cx="33" cy="52" r="8" fill="var(--accent)" opacity=".55"/><circle cx="67" cy="52" r="8" fill="var(--accent)" opacity=".55"/><line x1="41" y1="52" x2="59" y2="52" stroke="var(--good)" stroke-width="2.4" stroke-dasharray="3 3"/>';
+  else if(n.includes('neus')) s=face+'<path d="M50 34 L44 60 Q50 66 56 60Z" fill="none" stroke="var(--line2)" stroke-width="2"/><line x1="42" y1="64" x2="58" y2="64" stroke="var(--accent)" stroke-width="2.2"/><path d="M42 64l4-3M42 64l4 3M58 64l-4-3M58 64l-4 3" stroke="var(--accent)" stroke-width="1.3" fill="none"/>';
+  else return '';
+  return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">${s}</svg>`;
+}
+
+// plain-language uitleg van JOUW waarde
+function interpret(name,m){
+  const n=name.toLowerCase(), v=m.v, within=v>=m.iLo&&v<=m.iHi, low=v<m.iLo, high=v>m.iHi;
+  if(n.includes('huid')) return within?`Je huid oogt egaal (${v}/100). Mooi — hou dit vast met dagelijkse SPF en consistentie.`:`Je huid scoort ${v}/100 op egaalheid — er is wat oneffenheid of roodheid zichtbaar. Met SPF + niacinamide is dit binnen enkele weken zichtbaar gladder.`;
+  if(n.includes('lip')) return high?`Je onderlip is ongeveer ${v}× zo vol als je bovenlip — een vrij groot verschil. Een goed gehydrateerde, iets vollere bovenlip brengt de balans terug.`:low?`Je boven- en onderlip zijn bijna even vol (${v}×) — iets meer volume onder oogt voller. Hydratatie en een lichte gloss helpen direct.`:`Je lipverhouding (${v}×) is mooi in balans: iets voller onder dan boven, precies het ideaal.`;
+  if(n.includes('kaak')&&n.includes('scher')) return within?`Je kaak loopt netjes taps toe (${v}× je jukbeenbreedte) — een scherpe lijn. Hou je vetpercentage laag om 'm te behouden.`:high?`Je kaak is bijna even breed als je jukbeenderen (${v}×) — weinig taps. Lager lichaamsvet en minder zout maken de lijn zichtbaarder.`:`Je kaak loopt sterk smal toe (${v}×) — een opvallend smalle onderkaak.`;
+  if(n.includes('lengte onderkant')) return high?`Je onderste gezichtsderde (neus→kin) is ${v}% van je gezicht — wat langer dan de ~⅓-norm. Volume bovenop je haar maakt het optisch korter.`:low?`Je onderste gezichtsderde is ${v}% — wat korter dan gemiddeld. Haar uit je gezicht verlengt het optisch.`:`Je gezicht is netjes in drieën verdeeld (onderdeel ${v}%).`;
+  if(n.includes('midden')) return within?`De afstand oog→mond t.o.v. je oogbreedte (${v}×) is compact — dat oogt jeugdig.`:high?`Je middengezicht is wat langer (${v}×). Slaap, minder zout en lager vet maken het compacter.`:`Je middengezicht is kort en compact (${v}×).`;
+  if(n.includes('ooghoek')) return within?`Je ooghoeken staan licht omhoog (+${v}°) — een alerte, frisse blik.`:high?`Je ooghoeken staan sterk omhoog (+${v}°) — een opvallend opwaartse blik.`:`Je ooghoeken hangen eerder omlaag (${v}°). Wenkbrauwgrooming en slaap tillen de blik optisch op.`;
+  if(n.includes('symmetrie')) return within?`Je gezicht is ${v}% symmetrisch — heel normaal. Perfecte symmetrie bestaat niet en oogt zelfs onnatuurlijk.`:`Je gezicht is ${v}% symmetrisch — een lichte asymmetrie (normaal en menselijk). Fotografeer vanaf je sterkste kant.`;
+  if(n.includes('gezichtsvorm')) return high?`Je gezicht is relatief breed (verhouding ${v}). Hoogte in je kapsel verlengt het optisch.`:low?`Je gezicht is relatief smal/lang (verhouding ${v}). Breedte en volume op ooghoogte balanceren het.`:`Je gezichtsvorm is neutraal (verhouding ${v}) — een veelzijdig type.`;
+  if(n.includes('afstand tussen')) return within?`Je ogen staan ongeveer één oogbreedte uit elkaar (${v}×) — de klassieke proportienorm.`:high?`Je ogen staan iets verder uit elkaar (${v}× oogbreedte) — puur een type, vooral relevant voor brilkeuze.`:`Je ogen staan iets dichter bij elkaar (${v}× oogbreedte) — een type, geen probleem.`;
+  if(n.includes('neus')) return high?`Je neusvleugels zijn wat breder dan de afstand tussen je binnenooghoeken (${v}×). Licht van bovenaf en contour slankt optisch.`:low?`Je neus is relatief smal (${v}×) t.o.v. je ogen.`:`Je neusbreedte zit in de klassieke verhouding (${v}×).`;
+  return '';
+}
+
+// korte, concrete actie voor de Top 3
+function topAction(m){
+  const n=m.name.toLowerCase();
+  if(n.includes('huid')) return "Elke ochtend SPF 30+, 's avonds niacinamide; bouw retinol langzaam op.";
+  if(n.includes('lip')) return "Dagelijks SPF-lippenbalsem + 2L water; 's nachts een lipmasker.";
+  if(n.includes('kaak')&&n.includes('scher')) return "Minder zout & alcohol + licht calorietekort — minder vocht en gezichtsvet.";
+  if(n.includes('lengte onderkant')) return "Stuur de proportie met je kapsel: volume bovenop.";
+  if(n.includes('midden')) return "7-8u slaap op je rug, minder zout, genoeg water.";
+  if(n.includes('ooghoek')) return "Wenkbrauwen netjes + voldoende slaap; 's ochtends een koude compres.";
+  if(n.includes('symmetrie')) return "Fotografeer vanaf je sterkste kant; zijscheiding compenseert.";
+  if(n.includes('gezichtsvorm')) return "Stuur met je kapsel — hoogte vs. breedte.";
+  if(n.includes('afstand tussen')) return "Vooral relevant voor je brilkeuze (brughoogte).";
+  if(n.includes('neus')) return "Licht van bovenaf bij foto's + eventueel lichte contour.";
+  return (m.tips&&m.tips[0])?m.tips[0].split('.')[0]+'.':'';
+}
+
 // ---- population context: geeft elk mm-getal betekenis (gemiddelde + waar jij zit) ----
 const MMREF={
   "Pupilafstand (PD)":{man:64,vrouw:62,sd:3.4},
@@ -1076,19 +1138,25 @@ function renderMetrics(metrics){
         ${gauge(m)}
         <p class="you ${you.cls}">${you.txt}</p>
         ${(m.what||m.tips||(m.upsell&&m.upsell.length))?`<details class="mdetails"${isT?' open':''}>
-          <summary>Wat het is &amp; wat je eraan kunt doen</summary>
-          ${m.what?`<p class="what">${m.what}</p>`:''}
+          <summary>Wat het is, wat het betekent &amp; wat je eraan kunt doen</summary>
+          <div class="explain">
+            ${metricArt(m.name)?`<div class="cart">${metricArt(m.name)}</div>`:''}
+            <div class="exptext">
+              ${m.what?`<p class="what" style="margin-top:0">${m.what}</p>`:''}
+              ${interpret(m.name,m)?`<p class="means"><b>Wat dit betekent voor jou:</b> ${interpret(m.name,m)}</p>`:''}
+            </div>
+          </div>
           ${m.tips?`<p class="tiplabel">Zelf doen — gratis:</p><ul class="tiplist">${m.tips.map(t=>`<li>${t}</li>`).join("")}</ul>`:''}
           ${renderUpsell(m.upsell)}
         </details>`:''}
       </div>`;
     }
   }
-  const kickTips=(opp.tips||[]).slice(0,3);
-  if(kickTips.length) html+=`<div class="card kick">
-    <b style="font-size:15px">Jouw 7-dagen kickstart</b>
-    <p class="muted" style="font-size:13px;margin:8px 0 0">Begin vandaag bij je grootste kans — <b>${opp.name.replace(/<[^>]+>/g,'')}</b>. Doe dit één week vol, dan zie je het terug bij je volgende meting.</p>
-    <ol>${kickTips.map(t=>`<li>${t}</li>`).join("")}</ol>
+  const t3=[...metrics].filter(m=>m.pillar==="maakbaar"||m.pillar==="deels").sort((a,b)=>a.score-b.score).slice(0,3);
+  if(t3.length) html+=`<div class="card top3">
+    <b style="font-size:16px">Jouw top 3 om aan te werken</b>
+    <p class="muted" style="font-size:13px;margin:6px 0 0">De 3 dingen met de meeste, haalbare winst — op volgorde. Begin bij #1, één week, en meet opnieuw.</p>
+    <ol>${t3.map(m=>`<li><div><div class="t3b">${m.name.replace(/<[^>]+>/g,'')}</div><div class="t3a">${topAction(m)}</div></div></li>`).join("")}</ol>
   </div>`;
   html+=`<div class="card center">
     <b style="font-size:15px">Deel of bewaar je meting</b>
