@@ -394,15 +394,18 @@ function loop(){
 }
 function captureCam(){
   const v=$("#video"); if(!v.videoWidth||!valid) return;
-  // gemiddelde over 6 frames voor stabiliteit (determinisme bij live beeld)
-  const acc=[]; for(let i=0;i<6;i++){ const r=landmarker.detectForVideo(v,performance.now()+i); if(r.faceLandmarks&&r.faceLandmarks[0]) acc.push(r.faceLandmarks[0]); }
-  if(!acc.length) return;
-  const N=acc[0].length, avg=[]; for(let j=0;j<N;j++){ let x=0,y=0; acc.forEach(a=>{x+=a[j].x;y+=a[j].y;}); avg.push({x:x/acc.length,y:y/acc.length}); }
+  // Vries het frame in als statische canvas — daarna IMAGE-mode detectie
+  // Dit geeft deterministische landmarks: zelfde frame → exact zelfde meting
   const cnv=document.createElement("canvas"); cnv.width=v.videoWidth; cnv.height=v.videoHeight;
   cnv.getContext("2d").drawImage(v,0,0);
-  const P=avg.map(p=>({x:p.x*v.videoWidth,y:p.y*v.videoHeight}));
-  photos.front={src:cnv,P}; stopCam();
-  $("#status").textContent="Analyseren…"; runReport();
+  stopCam();
+  $("#status").textContent="Analyseren…";
+  ensureMode("IMAGE").then(()=>{
+    const P=detectImg(cnv);
+    if(!P){ $("#status").textContent="Gezicht niet herkend in foto — probeer opnieuw."; show("capture"); startCam(); return; }
+    photos.front={src:cnv,P};
+    runReport();
+  }).catch(e=>{ $("#status").textContent="Fout bij analyseren: "+e.message; show("capture"); });
 }
 
 // ================= GEOMETRY + METRICS =================
@@ -472,74 +475,134 @@ function buildMetrics(P, src){
   const T=(w,mn,nx)=>g==="vrouw"?w:g==="man"?mn:(nx||mn); // tips per geslacht
   const metrics=[
     M("maakbaar","Lippen","Lippen: vorm","×",+lipR.toFixed(2),0.7,2.5,lipI[0],lipI[1],
-      "De verhouding tussen je onder- en bovenlip. Volle, verzorgde lippen maken veel verschil — en dit is makkelijk te verbeteren.",
+      "De verhouding tussen je onder- en bovenlip (ideaal iets voller onder dan boven). Volle, goed gehydrateerde lippen zijn een van de snelste, goedkoopste verbeteringen — droge of gebarsten lippen kosten je meer dan je denkt.",
       T(
-        ["Overdag een hydraterende balsem mét SPF; 1× per week zacht scrubben tegen velletjes.","Trek een dun lijntje nét buiten je natuurlijke onderlip-rand voor optisch meer volume.","Vermijd dagelijks uitdrogende matte lippenstift — kies hydraterende of satijnen formules."],
-        ["Gebruik dagelijks lippenbalsem — mannen hebben vaker droge, gebarsten lippen en dat valt op.","Drink genoeg water; uitgedroogde lippen ogen meteen dunner.","Houd je stoppel-/baardlijn rond je mond strak — dat laat je lippen evenwichtiger ogen."],
-        ["Dagelijks lippenbalsem + 1× per week zacht scrubben.","Drink genoeg water — droge lippen lijken dunner.","Een balsem met SPF voorkomt verkleuring."]),
-      {b:"Lipverzorging",s:"hydraterend lip-masker voor de nacht"}),
+        ["Gebruik elke dag overdag een balsem met SPF 15+ — lippen hebben geen melanine en verbranden sneller dan je huid, wat leidt tot verkleuring en vroeg verouderen. Scrub 1× per week zacht met een suiker-scrub of een zachte tandenborstel om velletjes te verwijderen zodat balsem beter intrekt.",
+         "Wil je meer volume optisch? Trek een dunne lijn precies op of net buiten de rand van je onderlip, blend goed uit. Verzorgde lippen met een satijnen finish zien er altijd voller uit dan matte lippen — spaar matte lippenstift voor speciale gelegenheden.",
+         "Slaap niet met lippenstift of matte formules — deze drogen je lippen verder uit 's nachts. Een dik lip-masker (zoals Laneige of een simpele vaseline-laag) 's avonds voor het slapen herstelt de huid terwijl je slaapt."],
+        ["Smeer elke dag lippenbalsem — dit klinkt onnodig maar gebarsten, droge lippen zijn een van de meest onderschatte dingen die het algehele verzorgde beeld breken. Kies een balsem met bijenwas of sheaboter, geen glanzende lip-gels die tijdelijk werken maar verder uitdrogen.",
+         "Drink elke dag 2-2,5 liter water. Uitdroging wordt als eerste zichtbaar in je lippen en ooggebied — als je lippen droog zijn, is de rest van je huid dat ook, maar minder zichtbaar. Dit is de goedkoopste 'skincare' die bestaat.",
+         "Houd je baard- of stoppellijn strak en hoog langs de mondhoeken. Een verzorgde lijn rond de mond trekt de lip-contour optisch scherper aan zonder dat je iets aan je lippen zelf doet."],
+        ["Gebruik elke dag lippenbalsem met SPF en scrub 1× per week zacht om velletjes te verwijderen. Goed gehydrateerde lippen reflecteren meer licht en zien er voller uit.",
+         "Drink genoeg water (2L+) en slaap voldoende — uitdroging en slaapgebrek zijn direct in je lippen zichtbaar als droogte en kleurverlies.",
+         "Een lichte gloss of satijnen balsem overdag geeft direct meer volume dan matte formules. 's Nachts: dikke laag herstellend lip-masker aanbrengen."]),
+      {b:"Lip-masker",s:"herstellend nachtmasker voor volle, egale lippen"}),
     M("maakbaar","Kaaklijn","Kaaklijn: scherpte","×",+taper.toFixed(2),0.55,0.95,0.68,0.82,
-      "Hoe smal je kaak toeloopt t.o.v. je jukbeenderen. Bepaalt hoe 'scherp' je kaaklijn eruitziet.",
+      "Hoe smal je kaak toeloopt t.o.v. je jukbeenderen. Een scherpe kaaklijn is een van de meest opvallende kenmerken van een aantrekkelijk gezicht — en het is grotendeels maakbaar, niet genetisch bepaald.",
       T(
-        ["Een lager lichaamsvet + minder zout/alcohol vermindert vasthouden van vocht en scherpt je kaaklijn.","Gua sha of een lymfe-massage 's ochtends vermindert tijdelijk zwelling en geeft direct definitie.","Contour nét onder je kaaklijn met highlight op het bot erboven voor optische scherpte."],
-        ["Een lager lichaamsvet geeft veruit de grootste, blijvende winst — focus daarop.","Trim je baardlijn scherp en hoog langs de kaak; een nette baardlijn 'tekent' direct een kaaklijn.","Tong tegen je gehemelte + hoofd rechtop (geen 'tech neck') traint je houding."],
-        ["Een lager lichaamsvet geeft de grootste zichtbare winst.","Minder zout en alcohol = minder vocht in je gezicht.","Tong tegen je gehemelte + rechtop houden traint je kaakhouding."]).concat(bmiNote?[bmiNote.trim()]:[]),
-      g==="man"?{b:"Baardtrimmer",s:"met precisie voor een strakke kaaklijn"}:{b:"Gua sha",s:"minder zwelling, meer definitie 's ochtends"}),
+        ["Een lager lichaamsvetpercentage is de grootste, meest blijvende winst. Gezichtsvocht verdwijnt bij −3 tot 5% lichaamsvet significant, waardoor de onderkaak beter zichtbaar wordt. Combineer dit met minder zout (minder waterretentie) en alcohol (dat vocht vasthoudt en de huid doet opzetten).",
+         "Gua sha of een lymfedrainage-massage elke ochtend vermindert tijdelijk de zwelling die 's nachts opbouwt door liggen en slaaphouding. Begin bij je nek, werk omhoog naar je kaak en wangen — dit verplaatst vocht weg uit je gezicht en geeft direct 15-20% meer definitie.",
+         "Contouring voor vrouwen: een matte bronzer of contour-stick nét onder de kaaklijn, een lichte highlight op het bot erboven. Blend goed uit. Dit werkt het best bij neutraal of warm daglicht."].concat(bmiNote?[bmiNote.trim()]:[]),
+        ["Een lager lichaamsvetpercentage is veruit de grootste winst — elke procent minder vet is direct zichtbaar in je gezicht, met name onder de kaak en wangen. Kies voor een licht calorietekort (300-500 kcal/dag) en krachttraining — crash-dieten kosten ook spiermassa, wat je gezicht hol maakt.",
+         "Trim je baardlijn scherp en hoog: volg de kaak, niet de hals. Een rechte lijn met een precisie-trimmer of scheermesje direct langs de onderkaak 'tekent' een kaaklijn aan die er anders niet of minder is. Dit is een van de snelste visuele verbeteringen voor mannen.",
+         "Houd je tong tegen je gehemelte als je ontspannen zit (mewing-houding) en draag je hoofd rechtop — 'tech neck' door naar beneden kijken creëert een dubbele kin door huidoverschot en vermindert de kaaklijn aanzienlijk op foto's en in het dagelijks leven."].concat(bmiNote?[bmiNote.trim()]:[]),
+        ["Minder zout en alcohol = minder vochtretentie in je gezicht, wat je kaaklijn direct zichtbaarder maakt. Probeer een week lang < 2g zout per dag en geen alcohol — het verschil is zichtbaar.",
+         "Gua sha 's ochtends met een koud steen (koel in de koelkast) verplaatst nachtelijk opgebouwde zwelling uit je gezicht en geeft direct meer definitie langs je kaak.",
+         "Rechtop houden en tong tegen je gehemelte plaatsen verbetert je houding en de positie van je kaak, wat op foto's en in video merkbaar beter oogt."]).concat(bmiNote?[bmiNote.trim()]:[]),
+      g==="man"?{b:"Precisie-trimmer",s:"voor een strakke baardlijn langs de kaak"}:{b:"Gua sha steen",s:"dagelijks voor minder zwelling en meer definitie"}),
     M("deels","Kaaklijn","Lengte onderkant gezicht","%",+lower3.toFixed(1),25,45,33,37,
-      "Hoe lang het deel onder je neus is t.o.v. de rest. Niet goed of fout — gewoon jouw vorm.",
+      "Hoe lang het onderste derde deel (neus → kin) is t.o.v. je totale gezichtshoogte. Dit ligt grotendeels vast, maar kapsel en baard sturen de perceptie sterk.",
       T(
-        ["Lange onderkant? Lagen en volume rond je gezicht verkorten het optisch.","Korte onderkant? Haar uit je gezicht en wat hoogte bovenop verlengen.","Dit ligt grotendeels vast — speel met je kapsel, stress er niet over."],
-        ["Lange onderkant? Wat baardlengte aan de kin balanceert het mooi.","Korte onderkant? Kortere baard + volume in je haar bovenop.","Grotendeels vast — stuur het met baard en kapsel, niet met stress."],
-        ["Stuur de balans met je kapsel (volume of lengte).","Haar uit je gezicht verandert de verhouding optisch.","Dit ligt grotendeels vast — maak je er niet druk om."]),
-      {b:"Styling",s:"matte klei of haarpoeder voor volume bovenop"}),
+        ["Een lange onderkant wordt optisch korter door volume en breedte bovenin — denk aan haar met breedte op de kruin, golfjes of coupe-volume. Lagen die bij je oor eindigen brengen de aandacht hoger in je gezicht en verminderen zo de lange onderkant optisch.",
+         "Een korte onderkant? Haar uit je gezicht en een hoge knot of hoogte op de kruin verlengen de perceptie van je gezicht. Vermijd pony's of haar dat op je kin valt — dat verdeelt je gezicht op de verkeerde plek.",
+         "Dit ligt grotendeels vast (botstructuur) maar is nauwelijks zichtbaar voor anderen — alleen op foto's met slechte hoek. Speel met je kapsel en maak je er niet druk om."],
+        ["Een lange onderkant? Baard of stoppels tot op de kin (niet langer) verminderen de kin-hoogte optisch. Combineer met volume bovenop je haar — een langere onderkant lijkt korter als het haar breder of hoger is.",
+         "Een korte onderkant? Laat je baard iets langer bij de kin groeien en houd de zijkanten kort (fade). Dit voegt visueel lengte toe aan het onderste gedeelte. Volume bovenop het haar (pompadour-stijl) versterkt hetzelfde effect.",
+         "Grotendeels vast — geen stress. Dit is botstructuur en valt anderen nauwelijks op. Stuur het met baard en kapselkeuze, niet met zelfkritiek."],
+        ["Stuur de proportie met je kapselkeuze: volume bovenop maakt de onderkant korter, haar dat naar de kin valt verlengt juist.",
+         "Haar uit je gezicht verhoogt de bovenkant visueel, waardoor de balans verschuift — ideaal bij een lange onderkant.",
+         "Dit is grotendeels structureel — je botbouw is niet goed of fout. Kapsel sturen, niet stress."]),
+      {b:"Styling-producten",s:"matte klei of volumepoeder voor controle bovenop"}),
     M("deels","Midden gezicht","Midden van je gezicht","×",+midface.toFixed(2),0.8,1.3,0.95,1.1,
-      "De afstand van je ogen naar je mond. Een compact midden oogt jong en rustig.",
+      "De verhouding tussen de ruimte van ogen naar mond t.o.v. de oogbreedte. Een compact middengezicht oogt jeugdiger — dit wordt beïnvloed door zwelling, lichaamsvet en slaap.",
       T(
-        ["Een lager lichaamsvet maakt je middengezicht compacter.","Highlight op je jukbeenderen trekt de aandacht omhoog en 'opent' je gezicht.","Minder zout + goede slaap verminderen ochtendzwelling."],
-        ["Een lager lichaamsvet maakt dit compacter en jonger ogend.","Slaap 7-8 uur en eet minder zout tegen zwelling.","Grotendeels structureel — leg je focus op de maakbare punten."],
-        ["Een lager lichaamsvet maakt dit compacter.","Goede slaap + minder zout tegen zwelling.","Grotendeels structureel — focus op wat maakbaar is."])),
+        ["Slaap 7-9 uur op je rug als het kan — op je zij slapen duwt vocht naar één kant van je gezicht en creëert asymmetrie en zwelling die uren aanhoudt. Slaap op een licht verhoogd kussen om vochtafvoer te verbeteren.",
+         "Beperk zout tot <2g per dag en drink 2L water. Zout trekt vocht in weefsels, met name zichtbaar in het middengezicht (wangen, onder de ogen). Vermijd bewerkt eten, kant-en-klaar maaltijden en snacks — die bevatten verborgen natrium.",
+         "Highlight je jukbeenderen met een lichte highlighter of shimmer boven op het bot — dit trekt de aandacht naar het brede deel van je gezicht en laat het middengezicht compact lijken."],
+        ["Slaap voldoende (7-8 uur) en beperk alcohol — alcohol verstoort je slaap, verhoogt cortisol en zorgt voor vochtretentie die het middengezicht opzet. Het effect is de volgende ochtend direct zichtbaar.",
+         "Eet minder bewerkt voedsel en zout, meer kaliumrijke groenten (banaan, spinazie) — kalium balanceert natrium en helpt je lichaam vocht af te voeren. Dit heeft een directe invloed op hoe gezwollen je gezicht eruitziet.",
+         "Lichaamsvet verlagen heeft het meeste effect op de midface: wangen en onderooggebied worden compacter. Dit is de meest blijvende verbetering — tijdelijke zwelling (slaap, zout) lost snel op maar structureel vet niet."],
+        ["Slaap genoeg op je rug, beperk zout en drink voldoende water — deze drie dingen samen hebben de grootste invloed op hoe compact je middengezicht eruitziet.",
+         "Highlight je jukbeenderen om de aandacht omhoog te trekken en het middengezicht visueel compacter te laten lijken.",
+         "Grotendeels structureel maar goed te beïnvloeden via levensstijl — slaap, hydratatie en lichaamsvet zijn de drie hefbomen."])),
     M("structureel","Symmetrie","Symmetrie (links vs rechts)","%",+symPct.toFixed(1),80,100,95,100,
-      "Hoe gelijk je linker- en rechterhelft zijn. Niemand is 100% symmetrisch — dat is volkomen normaal.",
+      "Hoe gelijk je linker- en rechterhelft zijn. Niemand op aarde is 100% symmetrisch — lichte asymmetrie maakt een gezicht juist menselijk en herkenbaar. Perfecte symmetrie ziet er gekunsteld uit.",
       T(
-        ["Maak je scheiding aan de 'drukkere' kant van je gezicht.","Fotografeer vanaf je betere kant — oefen welke dat is.","Iets meer volume aan één kant van je haar balanceert optisch."],
-        ["Scheiding aan de drukkere kant + daar iets meer volume.","Fotografeer vanaf je betere kant.","Slaap op je rug; altijd op één kant slapen kan asymmetrie versterken."],
-        ["Scheiding aan de drukkere kant.","Fotografeer vanaf je betere kant.","Slaap op je rug."])),
+        ["Iedereen heeft een 'betere kant' voor foto's — de meeste mensen zijn iets symmetrischer aan één zijde. Maak selfies van beide kanten en vergelijk; fotografeer daarna bewust vanaf je sterkste kant voor social media.",
+         "Kapsel en scheiding sturen de perceptie sterk: een zijscheiding aan de 'drukkere' kant van je gezicht (de kant die iets meer naar voren steekt) geeft balans. Meer volume aan de lichtere kant compenseert ook optisch.",
+         "Slaap bij voorkeur op je rug — jarenlang altijd op dezelfde zijde slapen kan asymmetrie licht versterken door druk op kraakbeen en zachte weefsels. Een orthopedisch hoofdkussen helpt."],
+        ["Fotografeer van beide kanten en oefen welke kant je sterkste is — dit is een van de snelste trucjes voor betere foto's. De meeste mannen negeren dit en fotograferen altijd recht vooruit, wat de asymmetrie het meest benadrukt.",
+         "Zijscheiding in je haar aan de kant die iets 'meer' is (drukker, groter) geeft direct meer balans. Meer volume aan de andere kant versterkt dit. Dit is de meest impactvolle kapsel-aanpassing die je kunt maken.",
+         "Slaap op je rug of wissel van slaapzijde — altijd op dezelfde kant slapen trekt zachte weefsels langzaam scheef. Kleine asymmetrie is normaal en menselijk; het wordt pas opvallend bij grote afwijkingen."],
+        ["Fotografeer van beide kanten en kies bewust je 'betere kant' voor foto's.",
+         "Zijscheiding en kapselvolume aan de 'lichtere' kant compenseren asymmetrie optisch.",
+         "Slaap op je rug of wissel van zijde — kleine asymmetrie is normaal en maakt je menselijk."])),
     M("structureel","Gezichtsvorm","Gezichtsvorm (breed of smal)","",+fwhr.toFixed(2),1.4,2.4,fwhrI[0],fwhrI[1],
-      "Hoe breed je gezicht is t.o.v. de hoogte. Puur een type — niet beter of slechter.",
+      "De verhouding tussen gezichtsbreedte en -hoogte (fWHR). Dit bepaalt je 'type' — smal, neutraal of breed. Puur structureel, maar je kapsel kan het heel effectief sturen.",
       T(
-        ["Breed gezicht? Hoogte en langere lagen langs je gezicht maken het langer.","Smal gezicht? Volume aan de zijkanten en een vollere look verbreden.","Dit is botstructuur — je kapsel doet hier het meeste."],
-        ["Breed gezicht? Hoogte bovenop + kortere zijkanten (fade) maken het langer.","Smal gezicht? Een vollere baard verbreedt je onderkant mooi.","Botstructuur — stuur het met je kapsel en baard."],
-        ["Breed? Hoogte bovenop verlengt optisch.","Smal? Volume aan de zijkanten verbreedt.","Botstructuur — je kapsel stuurt het meest."])),
+        ["Een breed gezicht wordt optisch langer door hoogte bovenop: haar dat omhoog groeit of gestyled wordt, lagen die de breedte van je gezicht minder benadrukken. Vermijd bob-kapsels op ooghoogte — die benadrukken de breedte op het breedste punt.",
+         "Een smal gezicht wordt breder door volume aan de zijkanten: golfjes, textuur en een kapsel met breedte ter hoogte van de jukbeenderen. Vermijd heel lang haar zonder volume of heel strak achterovergetrokken kapsels.",
+         "Dit is botstructuur — niet stressvol, maar je kapselkeuze en pony of niet hebben hier het meeste effect. Bespreek het met een goede kapper op basis van je gezichtsvorm."],
+        ["Een breed gezicht? Kies een kapsel met hoogte bovenop (pompadour, quiff, texture) en kortere of strakke zijkanten. Een fade of undercut trekt de breedte weg en geeft het gezicht meer lengte. Vermijd afro- of brede kapsels die het breedste punt van je gezicht extra benadrukken.",
+         "Een smal gezicht? Een baard verbreedt je onderkant aanzienlijk — laat de baard aan de zijkanten wat verder groeien (naar de jukbeenderen toe) voor de meeste breedte. Combineer met een kapsel zonder extra hoogte bovenop.",
+         "Botstructuur. Stuur het met kapsel en baard — geen stress. Brede gezichten worden geassocieerd met dominantie in onderzoek; smalle met elegantie. Beide zijn waardevol."],
+        ["Breed? Hoogte bovenop je haar (volume op de kruin) verlengt het gezicht optisch. Vermijd kapsels met breedte op ooghoogte.",
+         "Smal? Volume aan de zijkanten ter hoogte van jukbeenderen verbreedt. Golfjes en textuur helpen meer dan strak haar.",
+         "Botstructuur — je kapselkeuze is hier het sterkste stuurmiddel."])),
     M("deels","Ogen","Ooghoek (omhoog of omlaag)","°",+tilt.toFixed(1),-6,14,tiltI[0],tiltI[1],
-      "Of je buitenste ooghoeken iets omhoog of omlaag staan. Een lichte opwaartse hoek oogt alert.",
+      "Of je buitenste ooghoeken iets omhoog (positief) of omlaag (negatief) staan t.o.v. de binnenhoeken. Een lichte opwaartse hoek oogt alert en jeugdig — negatieve tilt wordt geassocieerd met vermoeidheid.",
       T(
-        ["Teken je wenkbrauwstaart iets hoger; dat tilt je hele blik op.","Een subtiele eyeliner-vleugel richting de buitenhoek lift de ooghoek optisch.","Genoeg slaap + 's ochtends koelen (koude lepel) vermindert hangende oogleden."],
-        ["Houd je wenkbrauwen netjes — losse haren onder de boog weg 'opent' je blik direct.","Genoeg slaap vermindert zware, hangende oogleden.","Koud water of een koude lepel 's ochtends tegen zwelling rond je ogen."],
-        ["Verzorgde wenkbrauwen tillen je oogkas optisch op.","Genoeg slaap vermindert hangende oogleden.","Koeling 's ochtends vermindert zwelling rond je ogen."]),
-      g==="vrouw"?{b:"Brow + liner",s:"wenkbrauwgel + dunne eyeliner"}:{b:"Brow-grooming",s:"wenkbrauw-trimmer + gel"}),
+        ["Trek de staart van je wenkbrauw iets hoger aan dan hij van nature groeit — dit tilt je hele oogzone optisch omhoog, zelfs als je ooghoeken zelf lager staan. Gebruik wenkbrauwpotlood of -poeder om de staart op te trekken, niet om te verdikken.",
+         "Een subtiele eyeliner-vleugel aan de buitenhoek van je oog trekt de lijn omhoog en compenseert een negatieve tilt visueel. Maak de lijn dun en ga licht omhoog aan het buiteneinde — je tekent de richting die je wilt, niet de richting die er al is.",
+         "Koude compresses of een koude (metalen) oogrolmasker 's ochtends verkleinen ooglidgezwelling aanzienlijk — dit is de snelste manier om een alertere, meer opwaartse blik te krijgen. Bewaar je oogcrème in de koelkast voor hetzelfde effect."],
+        ["Houd je wenkbrauwen netjes verzorgd — dit is veruit de meest impactvolle grooming-stap voor mannen. Losse haren onder de wenkbrauwboog 'drukken' je blik naar beneden en maken je oogzone zwaarder. Een wenkbrauw-trimmer of pincet, 1× per week, verwijder haren onder en tussen de wenkbrauwen.",
+         "Slaap voldoende — slaapgebrek laat je ooglid letterlijk zakken (ptosis) en maakt de ooghoek zwaarder en negatief. Na 8 uur slaap zit je ooghoek meetbaar hoger dan na 5 uur. Dit is de grootste beïnvloeder van je ooghoek op dagelijkse basis.",
+         "Een koude natte washand of ijs in een ziplockzak 's ochtends 10-15 seconden per oog vermindert zwelling die 's nachts opbouwt. Dit geeft je blik direct meer alertheid en trekt de hoek optisch iets omhoog."],
+        ["Netjes verzorgde wenkbrauwen (losse haren onder de boog verwijderen) en voldoende slaap zijn de twee grootste gratis verbeteringen voor je ooghoek.",
+         "Een koude compress 's ochtends vermindert ooglidgezwelling en geeft direct een alerter effect.",
+         "Wenkbrauwstaart iets hoger aantekenen geeft optisch een opwaartse tilt aan je hele oogzone."]),
+      g==="vrouw"?{b:"Wenkbrauw & eyeliner",s:"wenkbrauwpoeder + dunne eyeliner voor lift-effect"}:{b:"Wenkbrauw-grooming kit",s:"trimmer + pincet voor verzorgde, lifting wenkbrauwen"}),
     M("structureel","Ogen","Afstand tussen je ogen","× oogbreedte",+spacing.toFixed(2),0.6,1.4,0.9,1.1,
-      "Of je ogen ongeveer één oogbreedte uit elkaar staan (de norm). Vooral informatief.",
+      "Of je ogen ongeveer één oogbreedte uit elkaar staan (de klassieke proportienorm). Dichter of verder uit elkaar is puur een type — het heeft weinig invloed op aantrekkelijkheid maar beïnvloedt brilkeuze sterk.",
       T(
-        ["Wenkbrauwen die iets verder van je neus starten doen dichtstaande ogen verder lijken.","Een lichte highlight in je binnenste ooghoek 'opent' de blik.","Brilkeuze (brughoogte) verandert hoe ver je ogen lijken te staan."],
-        ["Het startpunt van je wenkbrauw stuurt hoe ver je ogen lijken te staan.","Brilkeuze (brughoogte) verandert dezelfde indruk.","Dit ligt vast — handig om te weten, niet om je druk over te maken."],
-        ["Je wenkbrauw-startpunt stuurt de perceptie.","Brilkeuze (brughoogte) helpt.","Ligt vast — geen stress."])),
+        ["Ogen die te dicht bij de neus staan? Begin je wenkbrauw iets verder van de neus — laat de eerste paar millimeter open. Combineer met een highlight op de binnenste ooghoek (oogschaduw of glansje) om de ogen optisch te scheiden.",
+         "Kies een bril met een lage brugpositie bij dichtstaande ogen — dit vergroot de visuele afstand tussen de ogen. Bij veraf staande ogen helpt een hoge, smalle brug. Dit is misschien de meest impactvolle bril-aanpassing die je kunt maken voor je gezichtsbalans.",
+         "Dit ligt structureel vast en heeft vrijwel geen invloed op hoe aantrekkelijk je bent — oogafstand varieert weinig tussen mensen en valt anderen nauwelijks op. Gebruik het als info voor brilkeuze, niet als zelfkritiek."],
+        ["Het startpunt van je wenkbrauw is het meeste stuurmiddel: begin iets verder naar buiten bij dichtstaande ogen, iets verder naar de neus toe bij verder uit elkaar. Kapper of brow-stylist kan dit voor je instellen.",
+         "Brilkeuze is hier het krachtigste gereedschap: een brug die laag zit maakt ogen visueel verder uit elkaar, een hoge brug dichter bij elkaar. Als je bril draagt, is dit de grootste cosmetische interventie die je hebt.",
+         "Dit is botstructuur — handig om te weten voor bril- en kapselkeuze, maar kijk er niet te lang naar op foto's. Het valt anderen niet op."],
+        ["Brilkeuze (brughoogte) stuurt de perceptie het meest — laag = verder uit elkaar, hoog = dichter bij.",
+         "Het startpunt van je wenkbrauw bepaalt ook de visuele afstand tussen je ogen.",
+         "Structureel — informatie voor bril- en kapselkeuze, niet voor zelfkritiek."])),
     M("structureel","Neus","Neusbreedte","×",+noseW.toFixed(2),0.6,1.5,0.85,1.1,
-      "Hoe breed je neusvleugels zijn t.o.v. je ogen. Grotendeels vaste structuur.",
+      "Hoe breed je neusvleugels zijn t.o.v. de binnenste ooghoekafstand (de klassieke schoonheidsnorm stelt dat ze gelijk zijn). Grotendeels vaste botstructuur, maar licht en contouring sturen sterk.",
       T(
-        ["Een dunne contourlijn langs je neusrug + highlight erop verlengt en versmalt optisch.","Licht van bovenaf maakt je neus smaller op foto's.","Een nette wenkbrauwvorm trekt de aandacht naar je ogen i.p.v. je neus."],
-        ["Belichting van bovenaf maakt je neus optisch smaller op foto's.","Een nette wenkbrauwvorm en passend kapsel sturen de aandacht.","Structureel — alleen met make-up/contour of cosmetisch te veranderen."],
-        ["Licht van bovenaf versmalt optisch.","Nette wenkbrauwen sturen de aandacht.","Structureel — contour of cosmetisch."]),
-      g==="vrouw"?{b:"Contour",s:"contour-stick + highlight"}:null),
+        ["Trek een dunne matte contourlijn langs beide zijkanten van je neus, van brug tot neusvleugel. Blend goed uit. Voeg een lichte highlight op het midden van je neusrug toe — dit maakt de neus optisch smal en langer. Gebruik een fijne borstel voor precisie, geen dikke vinger.",
+         "Belichting van bovenaf (ringlight, daglicht van een raam boven je) maakt je neus smaller dan zijdelingse of onderaf komende belichting. Op foto's en video is de lichthoek een van de sterkste 'contouring'-tools die je gratis hebt.",
+         "Een sterke, nette wenkbrauwvorm trekt de aandacht naar je ogen en vermindert de focus op je neus significant. Investeer in wenkbrauwverzorging — het herdistribueert aandacht in je gezicht."],
+        ["Belichting van bovenaf maakt je neus smaller op foto's en in het echte leven. Kijk bij selfies niet omhoog in de camera — dit vergroot de neus enorm. Camera op ooghoogte of net erboven geeft de meest proportionele weergave.",
+         "Een kapsel met volume aan de zijkanten vermindert de relatieve breedte van je neus visueel — een bredere omlijsting maakt alles erin proportioneler lijken. Dezelfde logica geldt voor een baard: breedte onderaan balanseert de neus.",
+         "Dit is grotendeels botstructuur — alleen contouring, chirurgie of belichting verandert het echt. Maar belichting is gratis en de winst is aanzienlijk: een ringlight op ooghoogte voor video of selfies is een van de beste investeringen."],
+        ["Contouring langs de neusvleugels + highlight op de neusrug slankt optisch — het meest effectieve trucje voor direct resultaat.",
+         "Belichting van bovenaf is gratis contouring: zorg dat licht van boven op je gezicht valt bij foto's en video.",
+         "Sterke wenkbrauwen en kapselvolume aan de zijkanten herdistribueren aandacht weg van de neus."]),
+      g==="vrouw"?{b:"Contour kit",s:"matte contour-stick + dunne kwast voor neuscontouring"}:null),
   ];
   const sk=skinScore(src,P);
   if(sk){ metrics.unshift(
     M("maakbaar","Huid","Huid: egaalheid","/100",sk.even,0,100,75,100,
-      "Hoe gelijkmatig je huid oogt. Dit is de snelste en makkelijkste winst — en het verandert het meest aan hoe verzorgd je overkomt.",
+      "Hoe gelijkmatig je huid oogt op basis van lichtreflectie. Een egale huid is het sterkste signaal van gezondheid en verzorging — meer dan de meeste andere kenmerken gecombineerd. Dit is ook de meest maakbare categorie.",
       T(
-        ["'s Ochtends: reinigen → vitamine C-serum → moisturizer → SPF 30+ (élke dag, ook binnen).","'s Avonds: dubbel reinigen, 2-3× per week retinol, daarna een hydraterende crème.","Niacinamide of azelaïnezuur tegen roodheid en oneffenheden; nooit slapen met make-up."],
-        ["Smeer élke dag SPF 30+ — dé fout die mannen overslaan; het scheelt op lange termijn het meest.","Scheer mét de haargroei mee + een alcoholvrije, hydraterende aftershave tegen irritatie en ingegroeide haren.","Houd 't simpel: milde reiniger ochtend en avond, niacinamide overdag, 2× per week lichte retinol 's nachts."],
-        ["Smeer élke dag zonnebrand (SPF 30+) — veruit de grootste winst voor je huid.","Reinig 's ochtends en 's avonds en hydrateer daarna.","Bouw retinol langzaam op (2× per week 's nachts); slaap genoeg en drink water."]),
-      {b:"Huidset",s:"vitamine C-serum + SPF om mee te starten"})
+        ["Ochtend-routine (5 min): milde reiniger → 2-3 druppels vitamine C-serum (antioxidant, egaleert pigmentatie) → lichte moisturizer → SPF 30+ óók als je niet naar buiten gaat. UV dringt door glas en is de #1 oorzaak van ongelijkmatige pigmentatie en vroeg ouder worden. Doe dit elke dag zonder uitzondering.",
+         "Avond-routine: dubbel reinigen als je make-up of SPF draagt (eerst olie-reiniger of micellair, dan milde reiniger). Daarna 2-3× per week retinol (begin met 0.025%, bouw op naar 0.1% over maanden) — dit stimuleert celvernieuwing en is klinisch bewezen het meest effectief voor egale huid. Eindig met een rijke moisturizer.",
+         "Niacinamide 5-10% overdag vermindert roodheid, grote poriën en pigmentvlekken — combineer niet met sterke vitamine C op hetzelfde moment (morgen C, avond retinol is de standaard). Slaap altijd met schone huid; make-up 's nachts laten zitten verergert poriën en oneffenheden sneller dan bijna alles anders."],
+        ["Stap 1, grootste winst: smeer elke dag SPF 30+ op je gezicht, óók binnenshuis bij ramen. Mannen vergeten dit het meest. UV-schade is cumulatief en onomkeerbaar — dit is de investering met de hoogste return on investment voor je huid op lange termijn.",
+         "Scheer correct: gebruik een scheercrème of -gel (geen droog scheren), scheer altijd mét de haargroei (niet ertegen in), gebruik een scherp mesje en spoel na met koud water. Daarna direct een alcoholvrije balsem met niacinamide. Ingegroeide haren, rode bultjes en irritatie zijn bijna altijd het gevolg van foutieve scheertechniek.",
+         "Bouw een simpele routine op: milde reiniger 's ochtends + 's avonds, daarna een vochtinbrengende crème. Voeg niacinamide toe voor egaalheid (2-4 weken geduld). Begin na 4 weken met retinol 2× per week 's avonds. Meer producten hoeven niet — consistentie slaat volledigheid."],
+        ["Elke dag SPF 30+ is de grootste enkelvoudige verbetering voor je huid — begin hiermee als je nog niets doet. Kies een lichte, niet-vette textuur als je het snel opdoet.",
+         "Reinig ochtend en avond met een milde (niet uitdrogende) reiniger en hydrateer direct daarna. Een goede moisturizer versterkt de huidbarrière, wat roodheid en oneffenheden vermindert.",
+         "Bouw retinol op na 4-6 weken: begin 1× per week 's nachts, verhoog langzaam. Combineer met een rijke vochtcrème. Resultaat na 8-12 weken: egaler, gladder en stralender."]),
+      {b:"Starter huidroutine",s:"vitamine C-serum + SPF 30+ als dagelijks fundament"})
   ); }
 
   const mmRows=[["Pupilafstand (PD)",D(P[L.rIris],P[L.lIris])*mm],["Gezichtsbreedte",faceW*mm],
