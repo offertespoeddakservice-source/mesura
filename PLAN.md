@@ -19,13 +19,13 @@ Een **gratis, privé web-tool** die je gezicht écht opmeet (in millimeters) en 
 
 ## Waar het nu staat
 - ✅ Werkende web-app: camera-mal, meting (478 punten + iris→mm), rapport, rescan-vergelijking met oude foto, man/vrouw-tips, privacy-pagina.
-- ⬜ **Nog niet online** (draait op localhost).
+- ✅ **Online (live)**: https://offertespoeddakservice-source.github.io/mesura/ — GitHub Pages, repo `offertespoeddakservice-source/mesura`.
 - ⬜ Geen echte betaling (gesimuleerd).
 - ⬜ Nog geen influencer-test gedaan.
 - Bestanden: `~/glowscan/` (`index.html` + `README.md` + dit plan).
 
 ## De stappen — één voor één
-0. **Online zetten** — 1 uur, gratis (Netlify of Cloudflare Pages). **Dit is de sleutel; zonder URL kun je niks testen.**
+0. ✅ **Online gezet** — live op https://offertespoeddakservice-source.github.io/mesura/ (GitHub Pages). Updaten = `git -C ~/glowscan add -A && git commit -m "..." && git push`.
 1. **Kanaal valideren** (deze week) — DM 10-15 micro-creators (skincare/grooming/glow-up) met: gratis toegang + eigen code + €5/verkoop. Doel: **3× ja**.
 2. **Smoke-test** — 10 echte mensen laten scannen, kijk mee, vraag: nuttig? zou je 't delen? betalen?
 3. **Mini ad-test** — €30-50 op TikTok/Meta → meet of mensen de scan **afmaken** + een vervolgactie doen.
