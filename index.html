@@ -1,0 +1,658 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Mesura — Objectieve gezichtsanalyse</title>
+<style>
+  :root{
+    --bg:#f3ede2; --card:#fbf7ef; --card2:#efe8da; --line:#e0d6c4; --line2:#d0c3aa;
+    --txt:#322c24; --muted:#7c7163; --muted2:#9b9080;
+    --accent:#b0604a; --accent2:#b0604a; --gold:#a9803f;
+    --good:#6f8a55; --warn:#bf8a3c; --bad:#bb5a48;
+    --font-serif:Georgia,"Times New Roman",serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);
+    color:var(--txt);font:15px/1.55 ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;min-height:100vh}
+  .wrap{max-width:720px;margin:0 auto;padding:24px 16px 90px}
+  header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+  .brand{display:flex;align-items:center;gap:9px}
+  .brand .dot{width:26px;height:26px;border-radius:7px;background:var(--accent);
+    display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#fff}
+  .brand b{font-size:18px;letter-spacing:.5px;font-weight:700}
+  .pill{font-size:11px;color:var(--muted);border:1px solid var(--line);padding:5px 10px;border-radius:999px}
+  h1{font-family:var(--font-serif);font-size:27px;font-weight:600;margin:0 0 6px;letter-spacing:-.2px}
+  h2{font-size:12px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);margin:24px 4px 10px;display:flex;align-items:center;gap:8px}
+  .sub{color:var(--muted);margin:0 0 20px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px;margin-bottom:16px;box-shadow:0 1px 3px rgba(20,20,20,.04)}
+  .screen{display:none} .screen.active{display:block}
+
+  .feat{display:flex;gap:12px;margin:13px 0;align-items:flex-start}
+  .feat .ic{font-size:19px} .feat b{display:block} .feat span{color:var(--muted);font-size:13.5px}
+  .check{display:flex;gap:10px;align-items:flex-start;margin:18px 0;font-size:13.5px;color:var(--muted)}
+  .check input{margin-top:3px;width:18px;height:18px;accent-color:var(--accent)}
+
+  .field{margin:12px 0} .field label{font-size:13px;color:var(--muted);display:block;margin-bottom:5px}
+  .field input,.field select{width:100%;background:#f1efe9;border:1px solid var(--line);color:var(--txt);border-radius:10px;padding:12px;font-size:14px}
+  .seg{display:flex;gap:8px} .seg button{flex:1;background:#f1efe9;border:1px solid var(--line);color:var(--txt);padding:11px;border-radius:10px;cursor:pointer;font-size:14px}
+  .seg button.on{border-color:var(--accent);background:#efe2d6;color:var(--accent);font-weight:600}
+
+  .tabs{display:flex;gap:8px;margin-bottom:14px}
+  .tabs button{flex:1;background:#f1efe9;border:1px solid var(--line);color:var(--muted);padding:11px;border-radius:10px;cursor:pointer;font-weight:600}
+  .tabs button.on{border-color:var(--accent);background:#efe2d6;color:var(--accent)}
+  .pane{display:none} .pane.on{display:block}
+
+  /* camera */
+  .cambox{position:relative;width:100%;max-width:360px;margin:0 auto;aspect-ratio:3/4;border-radius:18px;overflow:hidden;background:#000}
+  .cambox video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
+  .oval{position:absolute;inset:0;pointer-events:none}
+  .oval svg{width:100%;height:100%}
+  .camstat{position:absolute;left:0;right:0;bottom:0;padding:12px;text-align:center;font-weight:700;font-size:14px;background:linear-gradient(transparent,#000c)}
+  .camstat.ok{color:var(--good)} .camstat.no{color:var(--warn)}
+
+  .slots{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:6px 0}
+  .slot{border:1.5px dashed var(--line);border-radius:14px;aspect-ratio:3/4;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    cursor:pointer;text-align:center;padding:8px;background:var(--card2);transition:.15s;overflow:hidden;position:relative}
+  .slot:hover{border-color:var(--accent)} .slot.filled{border-style:solid;border-color:var(--good)}
+  .slot img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  .slot .lab{font-size:12px;font-weight:600} .slot .hint{font-size:10px;color:var(--muted)}
+  .slot .tag,.slot .opt{position:absolute;top:6px;font-size:9px;background:#000a;padding:2px 6px;border-radius:6px;z-index:2}
+  .slot .tag{left:6px} .slot .opt{right:6px;color:var(--muted)}
+  input[type=file]{display:none}
+  .instr{font-size:12.5px;color:var(--muted);background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:13px 15px;margin-top:14px}
+  .instr li{margin:3px 0}
+
+  .btn{appearance:none;border:0;border-radius:12px;padding:15px 20px;font-size:15px;font-weight:600;cursor:pointer;color:#fff;
+    background:var(--accent);width:100%;transition:.15s}
+  .btn:hover{filter:brightness(1.08)} .btn:disabled{opacity:.4;cursor:default;filter:none}
+  .btn.ghost{background:#fff;color:var(--txt);border:1px solid var(--line2);font-weight:600} .btn.gold{background:var(--gold);color:#fff}
+  .status{color:var(--muted);text-align:center;margin:13px 0;min-height:20px;font-size:14px}
+
+  .overlay-wrap{display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start}
+  canvas#cv{border-radius:14px;border:1px solid var(--line);max-width:100%;background:#000}
+  .mm{flex:1;min-width:170px}
+  .mm .row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--line);font-size:13px}
+  .mm .row:last-child{border:0} .mm .row b{font-variant-numeric:tabular-nums}
+
+  .pgroup{margin-bottom:6px}
+  .metric{position:relative;border:1px solid var(--line);border-radius:14px;padding:14px 15px;margin-bottom:10px;background:var(--card2)}
+  .metric .top{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+  .metric h3{margin:0;font-size:14px}
+  .metric .val{font-variant-numeric:tabular-nums;color:var(--muted);font-size:12px}
+  .delta{font-size:11px;margin-left:6px;font-weight:700}
+  .gauge{height:24px;margin:10px 0 8px;position:relative}
+  .gauge .track{position:absolute;top:10px;left:0;right:0;height:5px;border-radius:4px;background:#f1efe9}
+  .gauge .ideal{position:absolute;top:8px;height:9px;border-radius:4px;background:rgba(111,138,85,.25);border:1px solid rgba(111,138,85,.5)}
+  .gauge .mark{position:absolute;top:3px;width:3px;height:18px;border-radius:2px;background:var(--accent2)}
+  .tip{color:var(--muted);font-size:12.5px;margin:4px 0 0}
+  .what{color:var(--txt);font-size:13px;margin:2px 0 6px;opacity:.92}
+  .tiplist{margin:4px 0 0;padding-left:18px} .tiplist li{color:var(--muted);font-size:12.5px;margin:4px 0}
+  .tiplabel{font-size:11px;color:var(--good);margin:8px 0 0;font-weight:700;letter-spacing:.2px}
+  .statusrow{font-size:12px;font-weight:700;margin:3px 0 2px}
+  .mission{border-left:3px solid var(--accent);padding:0 0 0 14px;margin:0 0 18px;font-size:15px;line-height:1.6;color:var(--txt)}
+  .missionR{border-left:3px solid var(--accent);padding:0 0 0 14px;font-size:13.5px;margin:0 0 16px;color:var(--muted)}
+  .ba-card{padding:16px} .balabel{font-size:13px;margin:0 0 12px;font-weight:600}
+  .ba{position:relative;width:300px;max-width:100%;height:340px;margin:0 auto;border-radius:14px;overflow:hidden;border:1px solid var(--line);user-select:none;touch-action:none}
+  .ba>svg{position:absolute;top:0;left:0;width:300px;height:340px;display:block}
+  .ba .after{position:absolute;top:0;left:0;height:100%;width:50%;overflow:hidden}
+  .ba .after svg{position:absolute;top:0;left:0;width:300px;height:340px}
+  .ba .handle{position:absolute;top:0;bottom:0;left:50%;width:2px;background:#fff;cursor:ew-resize;z-index:3}
+  .ba .handle::after{content:"⇄";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;color:#0a0c10;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px}
+  .ba .tagb,.ba .taga{position:absolute;bottom:8px;font-size:11px;background:#000a;padding:3px 8px;border-radius:6px;color:#fff;z-index:2}
+  .ba .tagb{left:8px} .ba .taga{right:8px}
+  .ba-img{position:absolute;top:0;left:0;width:300px;height:340px;object-fit:cover}
+  .ph{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:var(--muted);font-size:13px;padding:24px;background:var(--card2)}
+  .ph span{font-size:11px;margin-top:4px}
+  .refbox{display:flex;gap:12px;align-items:center;background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:12px}
+  .refbox img{width:64px;height:80px;object-fit:cover;border-radius:8px;border:1px solid var(--line)}
+  .refbox b{font-size:13px} .refbox span{font-size:12px;color:var(--muted)}
+  .summary{text-align:center} .summary .big{font-size:21px;font-weight:800;margin:6px 0}
+  .opt{font-size:11.5px;color:var(--muted2);margin:8px 0 0} .opt i{color:var(--muted);font-style:normal;font-weight:700}
+  .reliab{background:var(--card2)} .reliab b{font-size:15px} .reliab .tiplist li{margin:6px 0;font-size:13px}
+  .sc{font-weight:800;font-size:14px;font-variant-numeric:tabular-nums}
+  .pillTag{font-size:10px;font-weight:600;letter-spacing:.4px;text-transform:uppercase;margin-left:8px}
+  .pm{color:var(--good)} .pd{color:var(--warn)} .ps{color:var(--muted2)}
+  .upsell{display:flex;gap:11px;align-items:center;border:1px solid var(--line2);border-radius:12px;padding:11px 13px;margin-top:9px;background:#eef4f1}
+  .upsell .e{font-size:20px} .upsell b{font-size:13px} .upsell span{font-size:11.5px;color:var(--muted)}
+  .upsell a{margin-left:auto;font-size:12px;color:#0a0c10;background:var(--gold);padding:8px 12px;border-radius:9px;text-decoration:none;font-weight:700;white-space:nowrap}
+  .beta{font-size:9px;color:var(--warn);border:1px solid var(--warn);padding:1px 5px;border-radius:5px;margin-left:6px}
+  .teaser{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+  .badge{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--accent);margin-bottom:8px}
+  .measure{position:relative}
+  .lk{filter:blur(7px);opacity:.5;pointer-events:none;user-select:none}
+  .lockicon{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:12.5px;color:var(--muted);gap:6px}
+
+  .pay{text-align:center}
+  .price{font-size:34px;font-weight:800;letter-spacing:-1px} .price s{color:var(--muted);font-size:20px;font-weight:500;margin-right:8px}
+  .codeRow{display:flex;gap:8px;margin:14px 0}
+  .codeRow input{flex:1;background:#f1efe9;border:1px solid var(--line);color:var(--txt);border-radius:10px;padding:12px;font-size:14px}
+  .ok{font-size:13px;margin-top:6px;min-height:16px;color:var(--good)}
+  .foot{color:var(--muted);font-size:11px;text-align:center;margin-top:12px;line-height:1.5}
+  .muted{color:var(--muted)} .center{text-align:center}
+  .trust{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:14px;color:var(--muted);font-size:11.5px}
+  .link{color:var(--accent2);cursor:pointer;text-decoration:underline}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand"><span class="dot">M</span><b>MESURA</b></div>
+    <span class="pill" id="enginePill">engine laden…</span>
+  </header>
+
+  <!-- WELCOME -->
+  <section class="screen active" id="welcome">
+    <h1>Objectieve gezichtsanalyse</h1>
+    <p class="sub">We meten je gezicht echt op — met 478 punten en je eigen iris als liniaal. In millimeters, niet geraden.</p>
+    <p class="mission">Gemaakt om je te helpen verbeteren — niet om je te beoordelen. Geen rating, geen oordeel; alleen je sterke punten en wat je zélf kunt doen.</p>
+    <div class="card ba-card">
+      <p class="balabel">Voor/na — voorbeeld <span class="muted">(echte foto's; voeg <code>voorbeeld-voor.jpg</code> &amp; <code>voorbeeld-na.jpg</code> toe aan de map)</span></p>
+      <div class="ba" id="ba">
+        <div class="ph">Hier komen echte voor/na-foto's<span>(met toestemming van de persoon)</span></div>
+        <img class="ba-img" src="voorbeeld-voor.jpg" alt="voor" onerror="this.remove()">
+        <div class="after"><img class="ba-img" src="voorbeeld-na.jpg" alt="na" onerror="this.remove()"></div>
+        <div class="handle"></div>
+        <span class="tagb">Voor</span><span class="taga">Na</span>
+      </div>
+      <p class="muted" style="font-size:12px;text-align:center;margin:10px 0 0">← sleep om te vergelijken →</p>
+    </div>
+    <div class="card">
+      <p style="margin:0 0 16px;line-height:1.6">We meten met 478 punten en je iris als liniaal, dus in echte millimeters. Alles gebeurt op je eigen toestel — je foto wordt nooit verstuurd of bewaard. En je krijgt geen oordeel: we laten zien wat je sterke punten zijn en wat je zélf kunt veranderen (huid, definitie, grooming), los van wat vastligt.</p>
+      <label class="check"><input type="checkbox" id="consent"><span>Ik ben <b>16+</b> en begrijp dat dit een <b>cosmetische, indicatieve</b> analyse is — geen medisch advies. Verwerking gebeurt lokaal.</span></label>
+      <button class="btn" id="toInfo" disabled>Start meting</button>
+      <p class="center" style="margin-top:14px"><span class="link" id="toPrivacy">Privacy &amp; voorwaarden</span></p>
+    </div>
+    <div class="card center" id="rescanCard" style="display:none">
+      <b>Welkom terug</b><p class="muted" id="prevInfo" style="margin:6px 0 12px"></p>
+      <button class="btn gold" id="toRescan">Vergelijk met je vorige meting · €10</button>
+    </div>
+  </section>
+
+  <!-- INFO (optioneel) -->
+  <section class="screen" id="privacy">
+    <h1>Privacy</h1>
+    <div class="card">
+      <p style="margin:0 0 10px">Mesura verwerkt je foto <b>volledig op je eigen toestel</b>. Je foto wordt <b>nooit geüpload, verstuurd of opgeslagen</b> op een server.</p>
+      <ul class="tiplist">
+        <li>De analyse draait lokaal in je browser.</li>
+        <li>We bewaren geen foto's. Alleen je meetresultaten (getallen) kunnen — als jij dat wilt — lokaal in je browser bewaard worden om je voortgang te volgen. Wis ze door je browsergegevens te legen.</li>
+        <li>Geen account nodig. We verkopen of delen geen gegevens.</li>
+        <li>Cosmetische, indicatieve analyse — geen medisch advies. Bedoeld voor 16 jaar en ouder.</li>
+      </ul>
+      <button class="btn ghost" id="backFromPrivacy" style="margin-top:14px">← Terug</button>
+    </div>
+  </section>
+
+  <section class="screen" id="info">
+    <h1>Optionele context</h1>
+    <p class="sub">Helpt om je ideaalwaarden en tips scherper te maken. Mag je overslaan.</p>
+    <div class="card">
+      <div class="field"><label>Geslacht</label>
+        <div class="seg" id="genderSeg"><button data-g="man">Man</button><button data-g="vrouw">Vrouw</button><button data-g="x">Anders / n.v.t.</button></div></div>
+      <div class="field"><label>Lengte (cm) — optioneel</label><input type="number" id="height" placeholder="bijv. 180"></div>
+      <div class="field"><label>Gewicht (kg) — optioneel</label><input type="number" id="weight" placeholder="bijv. 75"></div>
+      <p class="foot" style="text-align:left">Lengte + gewicht gebruiken we alleen om je definitie-tips (kaaklijn/onderkin) te duiden via BMI. Wordt niet bewaard.</p>
+      <button class="btn" id="toCapture">Verder</button>
+      <button class="btn ghost" id="skipInfo" style="margin-top:8px">Overslaan</button>
+    </div>
+  </section>
+
+  <!-- CAPTURE -->
+  <section class="screen" id="capture">
+    <h1>Je foto</h1>
+    <p class="sub">Voor betrouwbare, herhaalbare metingen: zorg dat je gezicht netjes in de mal valt.</p>
+    <div class="refbox" id="rescanRef" style="display:none;margin-bottom:14px"><img id="rescanRefImg" alt="vorige foto"><div><b>Dit was je vorige foto</b><br><span>Match zoveel mogelijk: zelfde licht, zelfde moment van de dag, zelfde hoek en afstand. Dát maakt je vergelijking eerlijk.</span></div></div>
+    <div class="card">
+      <div class="tabs"><button class="on" data-tab="cam">Maak foto (aanbevolen)</button><button data-tab="up">Upload (minder zeker)</button></div>
+
+      <div class="pane on" id="paneCam">
+        <div class="cambox">
+          <video id="video" playsinline muted></video>
+          <div class="oval"><svg viewBox="0 0 300 400" preserveAspectRatio="none">
+            <defs><mask id="m"><rect width="300" height="400" fill="#fff"/><ellipse cx="150" cy="180" rx="92" ry="125" fill="#000"/></mask></defs>
+            <rect width="300" height="400" fill="rgba(8,10,16,.55)" mask="url(#m)"/>
+            <ellipse id="ovalRing" cx="150" cy="180" rx="92" ry="125" fill="none" stroke="#fbbf24" stroke-width="2.5" stroke-dasharray="6 6"/>
+          </svg></div>
+          <div class="camstat no" id="camStat">camera starten…</div>
+        </div>
+        <div style="height:12px"></div>
+        <button class="btn" id="startCam">Camera aanzetten</button>
+        <button class="btn" id="shoot" style="display:none" disabled>📸 Vastleggen</button>
+      </div>
+
+      <div class="pane" id="paneUp">
+        <p class="instr" style="margin:0 0 12px">Let op: upload is minder betrouwbaar — hoek en afstand variëren per foto. Voor herhaalbare metingen: gebruik <b>Maak foto</b>. Te gedraaide foto's worden geweigerd.</p>
+        <div class="slots">
+          <label class="slot"><span class="tag">Verplicht</span><span class="lab">🙂 Frontaal</span><span class="hint">recht vooruit</span><input type="file" accept="image/*" data-input="front"></label>
+          <label class="slot"><span class="opt">optie</span><span class="lab">😐 Links</span><span class="hint">90° profiel</span><input type="file" accept="image/*" data-input="left"></label>
+          <label class="slot"><span class="opt">optie</span><span class="lab">🙃 Rechts</span><span class="hint">90° profiel</span><input type="file" accept="image/*" data-input="right"></label>
+        </div>
+        <button class="btn" id="analyzeUp" disabled style="margin-top:12px">Analyseer</button>
+      </div>
+
+      <ul class="instr">
+        <b>Voor herhaalbare metingen (belangrijk bij rescan):</b>
+        <li>• <b>Zelfde licht & zelfde tijd</b> van de dag — licht verandert je huidmeting het meest</li>
+        <li>• Neutrale blik, mond dicht, haar weg, geen bril/pet</li>
+        <li>• Camera op ooghoogte, recht vooruit (frontaal) / exact 90° (profiel)</li>
+        <li>• Zelfde afstand: gezicht vult de mal</li>
+      </ul>
+      <div class="status" id="status"></div>
+    </div>
+    <button class="btn ghost" id="backInfo">← Terug</button>
+  </section>
+
+  <!-- REPORT -->
+  <section class="screen" id="report">
+    <h1>Je meetrapport</h1>
+    <div class="card">
+      <div class="overlay-wrap">
+        <canvas id="cv" width="300" height="400"></canvas>
+        <div class="mm"><h3 style="margin:0 0 8px;font-size:14px">Afmetingen (mm)</h3><div id="mmList"></div>
+          <p class="foot" style="text-align:left;margin-top:10px">Geschaald via iris-diameter (≈11,7&nbsp;mm). Identieke foto → identiek resultaat.</p></div>
+      </div>
+    </div>
+    <div id="metricsHost"></div>
+    <button class="btn ghost" id="restart" style="margin-top:8px">↺ Nieuwe meting</button>
+  </section>
+</div>
+
+<script type="module">
+import { FaceLandmarker, FilesetResolver } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.18/+esm";
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const show=id=>{ $$(".screen").forEach(s=>s.classList.remove("active")); $("#"+id).classList.add("active"); window.scrollTo({top:0,behavior:"smooth"}); };
+
+let landmarker=null, curMode="IMAGE";
+const ctx={gender:"x", height:null, weight:null, rescan:false};
+const photos={front:null,left:null,right:null}; // {src(Image/canvas), P(px landmarks)}
+
+(async()=>{
+  try{
+    const fs=await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.18/wasm");
+    landmarker=await FaceLandmarker.createFromOptions(fs,{
+      baseOptions:{modelAssetPath:"https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task"},
+      runningMode:"IMAGE",numFaces:1});
+    $("#enginePill").textContent="✓ engine gereed";
+  }catch(e){ $("#enginePill").textContent="engine fout"; }
+})();
+async function ensureMode(m){ if(curMode!==m){ await landmarker.setOptions({runningMode:m}); curMode=m; } }
+
+// prior scan?
+const prev=JSON.parse(localStorage.getItem("mesura_prev")||"null");
+if(prev){ $("#rescanCard").style.display=""; $("#prevInfo").textContent=`Laatste meting: ${prev.date}.`; }
+
+// nav
+$("#consent").addEventListener("change",e=>$("#toInfo").disabled=!e.target.checked);
+$("#toInfo").addEventListener("click",()=>show("info"));
+$("#toRescan").addEventListener("click",()=>{ctx.rescan=true; show("info");});
+$("#genderSeg").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
+  $$("#genderSeg button").forEach(x=>x.classList.remove("on")); b.classList.add("on"); ctx.gender=b.dataset.g;});
+function goCapture(){ show("capture"); if(ctx.rescan&&prev&&prev.photo){ $("#rescanRefImg").src=prev.photo; $("#rescanRef").style.display="flex"; } }
+$("#toCapture").addEventListener("click",()=>{ctx.height=+$("#height").value||null; ctx.weight=+$("#weight").value||null; goCapture();});
+$("#skipInfo").addEventListener("click",goCapture);
+$("#toPrivacy")&&$("#toPrivacy").addEventListener("click",()=>show("privacy"));
+$("#backFromPrivacy")&&$("#backFromPrivacy").addEventListener("click",()=>show("welcome"));
+$("#backInfo").addEventListener("click",()=>{stopCam(); show("info");});
+$("#restart").addEventListener("click",()=>location.reload());
+
+// voor/na-schuiver
+(()=>{ const ba=$("#ba"); if(!ba) return; const after=ba.querySelector(".after"), handle=ba.querySelector(".handle"); let drag=false;
+  setTimeout(()=>{ if(!ba.querySelector(".ba-img")){ handle.style.display="none"; after.style.width="0"; ba.querySelectorAll(".tagb,.taga").forEach(t=>t.style.display="none"); const cap=ba.parentElement.querySelector("p.muted"); if(cap) cap.style.display="none"; } },500);
+  const setX=x=>{ const r=ba.getBoundingClientRect(); let p=Math.max(0,Math.min(1,(x-r.left)/r.width)); after.style.width=(p*100)+"%"; handle.style.left=(p*100)+"%"; };
+  const pt=e=>(e.touches&&e.touches[0]?e.touches[0]:e).clientX;
+  ba.addEventListener("mousedown",e=>{drag=true;setX(pt(e));});
+  ba.addEventListener("touchstart",e=>{drag=true;setX(pt(e));},{passive:true});
+  window.addEventListener("mousemove",e=>{if(drag)setX(pt(e));});
+  window.addEventListener("touchmove",e=>{if(drag)setX(pt(e));},{passive:true});
+  window.addEventListener("mouseup",()=>drag=false); window.addEventListener("touchend",()=>drag=false);
+})();
+
+// tabs
+$$(".tabs button").forEach(b=>b.addEventListener("click",()=>{
+  $$(".tabs button").forEach(x=>x.classList.remove("on")); b.classList.add("on");
+  $$(".pane").forEach(p=>p.classList.remove("on"));
+  $("#pane"+(b.dataset.tab==="cam"?"Cam":"Up")).classList.add("on");
+  if(b.dataset.tab!=="cam") stopCam();
+}));
+
+// upload slots
+$$("input[data-input]").forEach(inp=>inp.addEventListener("change",e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const url=URL.createObjectURL(f), img=new Image();
+  img.onload=()=>{ photos[inp.dataset.input]={src:img,P:null}; $("#analyzeUp").disabled=!photos.front; };
+  img.src=url;
+  const slot=inp.closest(".slot"); slot.classList.add("filled"); slot.querySelectorAll("img").forEach(i=>i.remove());
+  const el=new Image(); el.src=url; slot.appendChild(el);
+}));
+$("#analyzeUp").addEventListener("click",async()=>{
+  if(!photos.front) return;
+  $("#status").textContent="Analyseren…";
+  try{
+    await ensureMode("IMAGE");
+    for(const k of ["front","left","right"]) if(photos[k]&&!photos[k].P){ const P=detectImg(photos[k].src); if(!P){ if(k==="front"){$("#status").textContent="Geen gezicht op de frontale foto.";return;} photos[k]=null; } else photos[k].P=P; }
+    const Pf=photos.front.P, ih=photos.front.src.naturalHeight||photos.front.src.height;
+    if(turned(Pf)>0.09){ $("#status").innerHTML="Let op: te gedraaid. Neem de foto <b>recht van voren</b> — of gebruik de camera-mal."; return; }
+    if(D(Pf[L.top],Pf[L.chin])/ih<0.3){ $("#status").innerHTML="Gezicht te klein in beeld. Vul meer van de foto met je gezicht — of gebruik de camera-mal."; return; }
+    runReport();
+  }catch(e){ $("#status").textContent="Fout: "+e.message; }
+});
+
+// ---- camera with face-mal ----
+let stream=null, raf=null, valid=false, validSince=0;
+$("#startCam").addEventListener("click",startCam);
+$("#shoot").addEventListener("click",captureCam);
+async function startCam(){
+  try{
+    await ensureMode("VIDEO");
+    stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"user",width:{ideal:720},height:{ideal:960}},audio:false});
+    $("#video").srcObject=stream; await $("#video").play();
+    $("#startCam").style.display="none"; $("#shoot").style.display="";
+    loop();
+  }catch(e){ $("#camStat").textContent="Geen camera — gebruik Upload"; $("#camStat").className="camstat no"; }
+}
+function stopCam(){ if(raf)cancelAnimationFrame(raf); raf=null; if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;} }
+function loop(){
+  raf=requestAnimationFrame(loop);
+  const v=$("#video"); if(!v.videoWidth) return;
+  let res; try{ res=landmarker.detectForVideo(v,performance.now()); }catch(e){ return; }
+  const st=$("#camStat"), sh=$("#shoot");
+  if(!res.faceLandmarks||!res.faceLandmarks.length){ valid=false; st.textContent="Geen gezicht — kom in beeld"; st.className="camstat no"; sh.disabled=true; return; }
+  const lm=res.faceLandmarks[0];
+  let mnx=1,mxx=0,mny=1,mxy=0; lm.forEach(p=>{mnx=Math.min(mnx,p.x);mxx=Math.max(mxx,p.x);mny=Math.min(mny,p.y);mxy=Math.max(mxy,p.y);});
+  const w=mxx-mnx,h=mxy-mny,cx=(mnx+mxx)/2,cy=(mny+mxy)/2;
+  // mirrored video: flip cx for guidance
+  const cxm=1-cx;
+  const yaw=Math.abs(lm[1].x-cx)/(w||1); // nose vs bbox center
+  let msg="",ok=true;
+  if(h<0.62){ msg="Kom dichterbij"; ok=false; }
+  else if(h>0.9){ msg="Iets verder weg"; ok=false; }
+  else if(Math.abs(cxm-0.5)>0.07){ msg=cxm<0.5?"Naar rechts":"Naar links"; ok=false; }
+  else if(Math.abs(cy-0.45)>0.08){ msg=cy<0.45?"Iets omlaag":"Iets omhoog"; ok=false; }
+  else if(yaw>0.06){ msg="Kijk recht in de lens"; ok=false; }
+  else if(turned(lm.map(p=>({x:p.x,y:p.y})))>0.08){ msg="Hoofd iets rechter draaien"; ok=false; }
+  else msg="Perfect — hou vast";
+  valid=ok; st.textContent=msg; st.className="camstat "+(ok?"ok":"no"); sh.disabled=!ok;
+  $("#ovalRing").setAttribute("stroke",ok?"#34d399":"#fbbf24");
+  if(ok && !validSince) validSince=performance.now();
+  if(!ok) validSince=0;
+  if(ok && performance.now()-validSince>700) captureCam(); // auto na 0.7s stabiel
+}
+function captureCam(){
+  const v=$("#video"); if(!v.videoWidth||!valid) return;
+  // gemiddelde over 6 frames voor stabiliteit (determinisme bij live beeld)
+  const acc=[]; for(let i=0;i<6;i++){ const r=landmarker.detectForVideo(v,performance.now()+i); if(r.faceLandmarks&&r.faceLandmarks[0]) acc.push(r.faceLandmarks[0]); }
+  if(!acc.length) return;
+  const N=acc[0].length, avg=[]; for(let j=0;j<N;j++){ let x=0,y=0; acc.forEach(a=>{x+=a[j].x;y+=a[j].y;}); avg.push({x:x/acc.length,y:y/acc.length}); }
+  const cnv=document.createElement("canvas"); cnv.width=v.videoWidth; cnv.height=v.videoHeight;
+  cnv.getContext("2d").drawImage(v,0,0);
+  const P=avg.map(p=>({x:p.x*v.videoWidth,y:p.y*v.videoHeight}));
+  photos.front={src:cnv,P}; stopCam();
+  $("#status").textContent="Analyseren…"; runReport();
+}
+
+// ================= GEOMETRY + METRICS =================
+const L={chin:152,top:10,glab:9,subn:2,noseTip:1,nasion:168,rOut:33,rIn:133,lIn:362,lOut:263,
+  rIris:468,lIris:473,rIrisR:469,rIrisL:471,rIrisT:470,rIrisB:472,lIrisR:474,lIrisL:476,lIrisT:475,lIrisB:477,
+  browR:105,browL:334,alarR:48,alarL:278,mR:61,mL:291,lipTop:0,stomU:13,stomL:14,lipBot:17,
+  cheekR:234,cheekL:454,gonR:172,gonL:397,foreheadC:151,cheekPR:50,cheekPL:280};
+const D=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+const ang3=(a,b,c)=>{const v1={x:a.x-b.x,y:a.y-b.y},v2={x:c.x-b.x,y:c.y-b.y};
+  const d=(v1.x*v2.x+v1.y*v2.y)/((Math.hypot(v1.x,v1.y)*Math.hypot(v2.x,v2.y))||1);return Math.acos(Math.max(-1,Math.min(1,d)))*180/Math.PI;};
+const tiltDeg=(i,o)=>Math.atan2(i.y-o.y,Math.abs(o.x-i.x))*180/Math.PI;
+function detectImg(img){ const r=landmarker.detect(img); if(!r.faceLandmarks||!r.faceLandmarks.length) return null;
+  const w=img.naturalWidth||img.width, h=img.naturalHeight||img.height; return r.faceLandmarks[0].map(p=>({x:p.x*w,y:p.y*h})); }
+// zet hoofd-kanteling (roll) recht: draai alles zodat de iris-lijn horizontaal staat → herhaalbare meting
+function rollCorrect(P){ const a=P[L.rIris],b=P[L.lIris]; const ang=Math.atan2(b.y-a.y,b.x-a.x);
+  const cx=(a.x+b.x)/2,cy=(a.y+b.y)/2,co=Math.cos(-ang),si=Math.sin(-ang);
+  return P.map(p=>{const dx=p.x-cx,dy=p.y-cy;return{x:cx+dx*co-dy*si,y:cy+dx*si+dy*co};}); }
+// hoe ver het hoofd weggedraaid is (yaw) — 0 = recht van voren
+function turned(P){ const n=P[L.noseTip],lh=Math.abs(P[L.cheekL].x-n.x),rh=Math.abs(n.x-P[L.cheekR].x); return Math.abs(lh-rh)/((lh+rh)||1); }
+function irisMM(P){ const rd=(D(P[L.rIrisR],P[L.rIrisL])+D(P[L.rIrisT],P[L.rIrisB]))/2,
+  ld=(D(P[L.lIrisR],P[L.lIrisL])+D(P[L.lIrisT],P[L.lIrisB]))/2,dia=(rd+ld)/2; return dia>0?11.7/dia:0; }
+function rangeScore(v,min,max,iLo,iHi){ if(v>=iLo&&v<=iHi){const c=(iLo+iHi)/2,hw=((iHi-iLo)/2)||1;return Math.round(100-Math.min(1,Math.abs(v-c)/hw)*12);}
+  const edge=v<iLo?iLo:iHi,d=Math.abs(v-edge)/((max-min)||1);return Math.max(5,Math.round(88-d*170)); }
+
+// skin (maakbare pillar) — sample huidvlakken
+function skinScore(srcCanvasOrImg,P){
+  const w=srcCanvasOrImg.width||srcCanvasOrImg.naturalWidth, h=srcCanvasOrImg.height||srcCanvasOrImg.naturalHeight;
+  const c=document.createElement("canvas"); c.width=w; c.height=h; const cx=c.getContext("2d");
+  try{ cx.drawImage(srcCanvasOrImg,0,0,w,h); }catch(e){ return null; }
+  const patch=(p,r=Math.max(6,w*0.03))=>{ try{ return cx.getImageData(Math.max(0,p.x-r),Math.max(0,p.y-r),r*2,r*2).data; }catch(e){ return null; } };
+  const pts=[P[L.cheekPR],P[L.cheekPL],P[L.foreheadC]].filter(Boolean);
+  let lum=[],red=0,n=0;
+  pts.forEach(p=>{ const d=patch(p); if(!d)return; for(let i=0;i<d.length;i+=4){const R=d[i],G=d[i+1],B=d[i+2];lum.push(0.299*R+0.587*G+0.114*B);red+=(R-G);n++;} });
+  if(!n) return null;
+  const mean=lum.reduce((a,b)=>a+b,0)/lum.length;
+  const sd=Math.sqrt(lum.reduce((a,b)=>a+(b-mean)**2,0)/lum.length);
+  const redAvg=red/n;
+  const even=Math.max(0,Math.min(100,Math.round(100-(sd-7)*3))); // lager sd = egaler
+  return {even, redness:+redAvg.toFixed(1)};
+}
+
+function buildMetrics(P, src){
+  const g=ctx.gender, mm=irisMM(P);
+  const faceW=D(P[L.cheekR],P[L.cheekL]);
+  const mid=(P[L.top].x+P[L.nasion].x+P[L.subn].x+P[L.chin].x)/4;
+  let asym=0;[[L.rOut,L.lOut],[L.rIn,L.lIn],[L.mR,L.mL],[L.cheekR,L.cheekL],[L.browR,L.browL]].forEach(([r,l])=>asym+=Math.abs(Math.abs(P[r].x-mid)-Math.abs(P[l].x-mid)));
+  const symPct=Math.max(70,100-(asym/5)/faceW*600);
+  const t1=P[L.glab].y-P[L.top].y,t2=P[L.subn].y-P[L.glab].y,t3=P[L.chin].y-P[L.subn].y,tot=t1+t2+t3;
+  const lower3=t3/tot*100;
+  const pupilY=(P[L.rIris].y+P[L.lIris].y)/2,stomY=(P[L.stomU].y+P[L.stomL].y)/2;
+  const midface=Math.abs(stomY-pupilY)/D(P[L.rIris],P[L.lIris]);
+  const fwhr=faceW/Math.abs(P[L.stomU].y-P[L.glab].y);
+  const tilt=(tiltDeg(P[L.rIn],P[L.rOut])+tiltDeg(P[L.lIn],P[L.lOut]))/2;
+  const spacing=D(P[L.rIn],P[L.lIn])/D(P[L.rOut],P[L.rIn]);
+  const noseW=D(P[L.alarR],P[L.alarL])/D(P[L.rIn],P[L.lIn]);
+  const taper=D(P[L.gonR],P[L.gonL])/faceW;
+  const lipR=Math.abs(P[L.lipBot].y-P[L.stomL].y)/Math.max(1,Math.abs(P[L.stomU].y-P[L.lipTop].y));
+  const tiltI=g==="vrouw"?[4,9]:g==="man"?[2,7]:[3,8];
+  const fwhrI=g==="vrouw"?[1.7,1.95]:g==="man"?[1.85,2.05]:[1.75,2.0];
+  const lipI=g==="vrouw"?[1.5,1.95]:[1.35,1.75];
+
+  // BMI-context tip voor definitie
+  let bmiNote="";
+  if(ctx.height&&ctx.weight){ const bmi=ctx.weight/((ctx.height/100)**2); if(bmi>25) bmiNote=` Je BMI (${bmi.toFixed(0)}) laat ruimte: −3 à 5% vet scherpt je kaaklijn zichtbaar aan.`; else if(bmi<20) bmiNote=` Je BMI (${bmi.toFixed(0)}) is laag — wat meer spiermassa kan je gezicht juist voller maken.`; }
+
+  const M=(pillar,cat,name,unit,v,min,max,iLo,iHi,what,tips,upsell)=>({pillar,cat,name,unit,v,min,max,iLo,iHi,what,tips,upsell,score:rangeScore(v,min,max,iLo,iHi)});
+  const T=(w,mn,nx)=>g==="vrouw"?w:g==="man"?mn:(nx||mn); // tips per geslacht
+  const metrics=[
+    M("maakbaar","Lippen","Lippen: vorm","×",+lipR.toFixed(2),0.7,2.5,lipI[0],lipI[1],
+      "De verhouding tussen je onder- en bovenlip. Volle, verzorgde lippen maken veel verschil — en dit is makkelijk te verbeteren.",
+      T(
+        ["Overdag een hydraterende balsem mét SPF; 1× per week zacht scrubben tegen velletjes.","Trek een dun lijntje nét buiten je natuurlijke onderlip-rand voor optisch meer volume.","Vermijd dagelijks uitdrogende matte lippenstift — kies hydraterende of satijnen formules."],
+        ["Gebruik dagelijks lippenbalsem — mannen hebben vaker droge, gebarsten lippen en dat valt op.","Drink genoeg water; uitgedroogde lippen ogen meteen dunner.","Houd je stoppel-/baardlijn rond je mond strak — dat laat je lippen evenwichtiger ogen."],
+        ["Dagelijks lippenbalsem + 1× per week zacht scrubben.","Drink genoeg water — droge lippen lijken dunner.","Een balsem met SPF voorkomt verkleuring."]),
+      {b:"Lipverzorging",s:"hydraterend lip-masker voor de nacht"}),
+    M("maakbaar","Kaaklijn","Kaaklijn: scherpte","×",+taper.toFixed(2),0.55,0.95,0.68,0.82,
+      "Hoe smal je kaak toeloopt t.o.v. je jukbeenderen. Bepaalt hoe 'scherp' je kaaklijn eruitziet.",
+      T(
+        ["Een lager lichaamsvet + minder zout/alcohol vermindert vasthouden van vocht en scherpt je kaaklijn.","Gua sha of een lymfe-massage 's ochtends vermindert tijdelijk zwelling en geeft direct definitie.","Contour nét onder je kaaklijn met highlight op het bot erboven voor optische scherpte."],
+        ["Een lager lichaamsvet geeft veruit de grootste, blijvende winst — focus daarop.","Trim je baardlijn scherp en hoog langs de kaak; een nette baardlijn 'tekent' direct een kaaklijn.","Tong tegen je gehemelte + hoofd rechtop (geen 'tech neck') traint je houding."],
+        ["Een lager lichaamsvet geeft de grootste zichtbare winst.","Minder zout en alcohol = minder vocht in je gezicht.","Tong tegen je gehemelte + rechtop houden traint je kaakhouding."]).concat(bmiNote?[bmiNote.trim()]:[]),
+      g==="man"?{b:"Baardtrimmer",s:"met precisie voor een strakke kaaklijn"}:{b:"Gua sha",s:"minder zwelling, meer definitie 's ochtends"}),
+    M("deels","Kaaklijn","Lengte onderkant gezicht","%",+lower3.toFixed(1),25,45,33,37,
+      "Hoe lang het deel onder je neus is t.o.v. de rest. Niet goed of fout — gewoon jouw vorm.",
+      T(
+        ["Lange onderkant? Lagen en volume rond je gezicht verkorten het optisch.","Korte onderkant? Haar uit je gezicht en wat hoogte bovenop verlengen.","Dit ligt grotendeels vast — speel met je kapsel, stress er niet over."],
+        ["Lange onderkant? Wat baardlengte aan de kin balanceert het mooi.","Korte onderkant? Kortere baard + volume in je haar bovenop.","Grotendeels vast — stuur het met baard en kapsel, niet met stress."],
+        ["Stuur de balans met je kapsel (volume of lengte).","Haar uit je gezicht verandert de verhouding optisch.","Dit ligt grotendeels vast — maak je er niet druk om."]),
+      {b:"Styling",s:"matte klei of haarpoeder voor volume bovenop"}),
+    M("deels","Midden gezicht","Midden van je gezicht","×",+midface.toFixed(2),0.8,1.3,0.95,1.1,
+      "De afstand van je ogen naar je mond. Een compact midden oogt jong en rustig.",
+      T(
+        ["Een lager lichaamsvet maakt je middengezicht compacter.","Highlight op je jukbeenderen trekt de aandacht omhoog en 'opent' je gezicht.","Minder zout + goede slaap verminderen ochtendzwelling."],
+        ["Een lager lichaamsvet maakt dit compacter en jonger ogend.","Slaap 7-8 uur en eet minder zout tegen zwelling.","Grotendeels structureel — leg je focus op de maakbare punten."],
+        ["Een lager lichaamsvet maakt dit compacter.","Goede slaap + minder zout tegen zwelling.","Grotendeels structureel — focus op wat maakbaar is."])),
+    M("structureel","Symmetrie","Symmetrie (links vs rechts)","%",+symPct.toFixed(1),80,100,95,100,
+      "Hoe gelijk je linker- en rechterhelft zijn. Niemand is 100% symmetrisch — dat is volkomen normaal.",
+      T(
+        ["Maak je scheiding aan de 'drukkere' kant van je gezicht.","Fotografeer vanaf je betere kant — oefen welke dat is.","Iets meer volume aan één kant van je haar balanceert optisch."],
+        ["Scheiding aan de drukkere kant + daar iets meer volume.","Fotografeer vanaf je betere kant.","Slaap op je rug; altijd op één kant slapen kan asymmetrie versterken."],
+        ["Scheiding aan de drukkere kant.","Fotografeer vanaf je betere kant.","Slaap op je rug."])),
+    M("structureel","Gezichtsvorm","Gezichtsvorm (breed of smal)","",+fwhr.toFixed(2),1.4,2.4,fwhrI[0],fwhrI[1],
+      "Hoe breed je gezicht is t.o.v. de hoogte. Puur een type — niet beter of slechter.",
+      T(
+        ["Breed gezicht? Hoogte en langere lagen langs je gezicht maken het langer.","Smal gezicht? Volume aan de zijkanten en een vollere look verbreden.","Dit is botstructuur — je kapsel doet hier het meeste."],
+        ["Breed gezicht? Hoogte bovenop + kortere zijkanten (fade) maken het langer.","Smal gezicht? Een vollere baard verbreedt je onderkant mooi.","Botstructuur — stuur het met je kapsel en baard."],
+        ["Breed? Hoogte bovenop verlengt optisch.","Smal? Volume aan de zijkanten verbreedt.","Botstructuur — je kapsel stuurt het meest."])),
+    M("deels","Ogen","Ooghoek (omhoog of omlaag)","°",+tilt.toFixed(1),-6,14,tiltI[0],tiltI[1],
+      "Of je buitenste ooghoeken iets omhoog of omlaag staan. Een lichte opwaartse hoek oogt alert.",
+      T(
+        ["Teken je wenkbrauwstaart iets hoger; dat tilt je hele blik op.","Een subtiele eyeliner-vleugel richting de buitenhoek lift de ooghoek optisch.","Genoeg slaap + 's ochtends koelen (koude lepel) vermindert hangende oogleden."],
+        ["Houd je wenkbrauwen netjes — losse haren onder de boog weg 'opent' je blik direct.","Genoeg slaap vermindert zware, hangende oogleden.","Koud water of een koude lepel 's ochtends tegen zwelling rond je ogen."],
+        ["Verzorgde wenkbrauwen tillen je oogkas optisch op.","Genoeg slaap vermindert hangende oogleden.","Koeling 's ochtends vermindert zwelling rond je ogen."]),
+      g==="vrouw"?{b:"Brow + liner",s:"wenkbrauwgel + dunne eyeliner"}:{b:"Brow-grooming",s:"wenkbrauw-trimmer + gel"}),
+    M("structureel","Ogen","Afstand tussen je ogen","× oogbreedte",+spacing.toFixed(2),0.6,1.4,0.9,1.1,
+      "Of je ogen ongeveer één oogbreedte uit elkaar staan (de norm). Vooral informatief.",
+      T(
+        ["Wenkbrauwen die iets verder van je neus starten doen dichtstaande ogen verder lijken.","Een lichte highlight in je binnenste ooghoek 'opent' de blik.","Brilkeuze (brughoogte) verandert hoe ver je ogen lijken te staan."],
+        ["Het startpunt van je wenkbrauw stuurt hoe ver je ogen lijken te staan.","Brilkeuze (brughoogte) verandert dezelfde indruk.","Dit ligt vast — handig om te weten, niet om je druk over te maken."],
+        ["Je wenkbrauw-startpunt stuurt de perceptie.","Brilkeuze (brughoogte) helpt.","Ligt vast — geen stress."])),
+    M("structureel","Neus","Neusbreedte","×",+noseW.toFixed(2),0.6,1.5,0.85,1.1,
+      "Hoe breed je neusvleugels zijn t.o.v. je ogen. Grotendeels vaste structuur.",
+      T(
+        ["Een dunne contourlijn langs je neusrug + highlight erop verlengt en versmalt optisch.","Licht van bovenaf maakt je neus smaller op foto's.","Een nette wenkbrauwvorm trekt de aandacht naar je ogen i.p.v. je neus."],
+        ["Belichting van bovenaf maakt je neus optisch smaller op foto's.","Een nette wenkbrauwvorm en passend kapsel sturen de aandacht.","Structureel — alleen met make-up/contour of cosmetisch te veranderen."],
+        ["Licht van bovenaf versmalt optisch.","Nette wenkbrauwen sturen de aandacht.","Structureel — contour of cosmetisch."]),
+      g==="vrouw"?{b:"Contour",s:"contour-stick + highlight"}:null),
+  ];
+  const sk=skinScore(src,P);
+  if(sk){ metrics.unshift(
+    M("maakbaar","Huid","Huid: egaalheid","/100",sk.even,0,100,75,100,
+      "Hoe gelijkmatig je huid oogt. Dit is de snelste en makkelijkste winst — en het verandert het meest aan hoe verzorgd je overkomt.",
+      T(
+        ["'s Ochtends: reinigen → vitamine C-serum → moisturizer → SPF 30+ (élke dag, ook binnen).","'s Avonds: dubbel reinigen, 2-3× per week retinol, daarna een hydraterende crème.","Niacinamide of azelaïnezuur tegen roodheid en oneffenheden; nooit slapen met make-up."],
+        ["Smeer élke dag SPF 30+ — dé fout die mannen overslaan; het scheelt op lange termijn het meest.","Scheer mét de haargroei mee + een alcoholvrije, hydraterende aftershave tegen irritatie en ingegroeide haren.","Houd 't simpel: milde reiniger ochtend en avond, niacinamide overdag, 2× per week lichte retinol 's nachts."],
+        ["Smeer élke dag zonnebrand (SPF 30+) — veruit de grootste winst voor je huid.","Reinig 's ochtends en 's avonds en hydrateer daarna.","Bouw retinol langzaam op (2× per week 's nachts); slaap genoeg en drink water."]),
+      {b:"Huidset",s:"vitamine C-serum + SPF om mee te starten"})
+  ); }
+
+  const mmRows=[["Pupilafstand (PD)",D(P[L.rIris],P[L.lIris])*mm],["Gezichtsbreedte",faceW*mm],
+    ["Gezichtshoogte",D(P[L.top],P[L.chin])*mm],["Mondbreedte",D(P[L.mR],P[L.mL])*mm],["Neusbreedte",D(P[L.alarR],P[L.alarL])*mm]]
+    .map(([k,v])=>[k,(v||0).toFixed(1)+" mm"]);
+  return {metrics,mmRows,mid};
+}
+function profileMetrics(P,side){
+  const gon=ang3(P[side==="left"?L.cheekL:L.cheekR],P[side==="left"?L.gonL:L.gonR],P[L.chin]);
+  const nasolab=ang3(P[L.noseTip],P[L.subn],P[L.lipTop]);
+  const M=(name,unit,v,min,max,iLo,iHi,what,tips)=>({pillar:"deels",cat:"Profiel",name,unit,v,min,max,iLo,iHi,what,tips,score:rangeScore(v,min,max,iLo,iHi),beta:true});
+  return [
+    M("Kaakhoek (zijaanzicht)","°",+gon.toFixed(0),95,150,118,128,
+      "De hoek van je kaak van opzij. Scherper = strakkere kaaklijn. Let op: zijfoto's zijn lastig te meten, dus zie dit als ruwe schatting.",
+      ["Een lager vetpercentage en goede houding helpen het meest.","Een stompe hoek is deels genetisch (niet zelf te veranderen).","Gebruik dit als indicatie, niet als hard cijfer."]),
+    M("Hoek neus–bovenlip (zijaanzicht)","°",+nasolab.toFixed(0),70,130,95,110,
+      "De hoek tussen je neus en bovenlip van opzij. Ook een schatting.",
+      ["Onder de 90° wijst je neustip naar beneden.","Alleen cosmetisch te veranderen (een 'tip-lift').","Ruwe indicatie — geen hard cijfer."])
+  ];
+}
+
+// ================= RENDER =================
+let lastMetrics=null;
+function runReport(){
+  const F=buildMetrics(rollCorrect(photos.front.P), photos.front.src);
+  let metrics=[...F.metrics];
+  for(const side of ["left","right"]) if(photos[side]&&photos[side].P) metrics=metrics.concat(profileMetrics(photos[side].P,side).map(m=>({...m,name:m.name+(side==="left"?" (L)":" (R)")})));
+  lastMetrics=metrics;
+  drawOverlay(photos.front.src,photos.front.P);
+  $("#mmList").innerHTML=F.mmRows.map(([k,v])=>`<div class="row"><span>${k}</span><b>${v}</b></div>`).join("");
+  renderMetrics(metrics);
+  $("#status").textContent=""; show("report");
+}
+function drawOverlay(src,P){
+  const cv=$("#cv"),c=cv.getContext("2d");
+  const iw=src.width||src.naturalWidth, ih=src.height||src.naturalHeight;
+  const W=300,H=Math.round(W*ih/iw); cv.width=W; cv.height=H;
+  const sx=W/iw,sy=H/ih,S=p=>({x:p.x*sx,y:p.y*sy});
+  const mid=(P[L.top].x+P[L.nasion].x+P[L.subn].x+P[L.chin].x)/4;
+  c.drawImage(src,0,0,W,H);
+  c.fillStyle="rgba(34,211,238,.5)"; P.forEach(p=>{const q=S(p);c.fillRect(q.x,q.y,1.1,1.1);});
+  const ln=(a,b,col)=>{c.strokeStyle=col;c.lineWidth=1;c.beginPath();const A=S(a),B=S(b);c.moveTo(A.x,A.y);c.lineTo(B.x,B.y);c.stroke();};
+  ln({x:mid,y:0},{x:mid,y:ih},"rgba(47,109,246,.8)");
+  ln(P[L.rIn],P[L.rOut],"rgba(52,211,153,.9)"); ln(P[L.lIn],P[L.lOut],"rgba(52,211,153,.9)");
+  ln(P[L.cheekR],P[L.cheekL],"rgba(47,109,246,.5)"); ln(P[L.gonR],P[L.gonL],"rgba(251,113,133,.7)");
+}
+const scColor=s=>s>=70?"var(--good)":s>=45?"var(--warn)":"var(--bad)";
+function statusLabel(m){
+  if(m.v>=m.iLo && m.v<=m.iHi) return {t:"binnen normaal bereik", c:"var(--good)"};
+  const bw=(m.iHi-m.iLo)||((m.max-m.min)*0.2), edge=m.v<m.iLo?m.iLo:m.iHi, d=Math.abs(m.v-edge)/bw;
+  const dir=m.v<m.iLo?"aan de lage kant":"aan de hoge kant";
+  return d<=1 ? {t:"net buiten bereik · "+dir, c:"var(--warn)"} : {t:"buiten bereik · "+dir, c:"var(--bad)"};
+}
+const pillLabel={maakbaar:["pm","Maakbaar"],deels:["pd","Deels"],structureel:["ps","Structureel"]};
+function gauge(m){ const span=m.max-m.min,pos=v=>Math.max(0,Math.min(100,(v-m.min)/span*100));
+  return `<div class="gauge"><div class="track"></div><div class="ideal" style="left:${pos(m.iLo)}%;width:${pos(m.iHi)-pos(m.iLo)}%"></div><div class="mark" style="left:calc(${pos(m.v)}% - 1.5px)"></div></div>`; }
+function deltaHTML(m){ if(!prev||!prev.metrics) return "";
+  const p=prev.metrics.find(x=>x.name===m.name); if(!p) return "";
+  const d=+(m.v-p.v).toFixed(2); if(!d) return ` <span class="delta muted">=</span>`;
+  const up=d>0; return ` <span class="delta" style="color:${up?'var(--good)':'var(--bad)'}">${up?'▲':'▼'}${Math.abs(d)}</span>`; }
+
+function renderMetrics(metrics){
+  const teaserName=[...metrics].sort((a,b)=>a.score-b.score)[0].name;
+  const groups=[["maakbaar","Maakbaar — je snelste winst"],["deels","Deels te beïnvloeden"],["structureel","Structureel — je basis"]];
+  let html="";
+  html+=`<p class="missionR">Dit rapport helpt je verbeteren — het is geen oordeel over je gezicht.</p>`;
+  html+=`<div class="card reliab"><b>Hoe eerlijk is deze test?</b>
+    <ul class="tiplist">
+      <li><b>Klopt goed:</b> het opmeten van je gezicht op één duidelijke, rechte foto.</li>
+      <li><b>Ruwe schatting:</b> de mm-waarden (±5-10%) en alle zijaanzicht-hoeken.</li>
+      <li><b>Geen rapportcijfer:</b> we tonen of je binnen het normale bereik valt — geen score voor je gezicht.</li>
+      <li><b>Zo gebruik je 't:</b> volg je eigen voortgang (zelfde licht & hoek) en pak de maakbare tips.</li>
+    </ul></div>`;
+  if(ctx.rescan&&prev){
+    let imp=0,tot=0;
+    if(prev.metrics) metrics.forEach(m=>{const pm=prev.metrics.find(x=>x.name===m.name);if(!pm)return;tot++;if(m.score>rangeScore(pm.v,m.min,m.max,m.iLo,m.iHi))imp++;});
+    html+=`<div class="card summary"><b>Vergelijking met ${prev.date}</b>
+      <div class="big" style="color:var(--good)">${tot>0?`${imp} van ${tot} punten verbeterd`:`Voortgang telt vanaf nu`}</div>
+      ${prev.photo?`<div class="refbox" style="text-align:left"><img src="${prev.photo}" alt="toen"><div><b>Toen → Nu</b><br><span>Links je vorige foto, hierboven je nieuwe meting (▲/▼ per punt).</span></div></div>`:''}
+      <p class="muted" style="font-size:12px;margin:8px 0 0">▲/▼ = verandering t.o.v. je vorige meting.</p></div>`;
+  }
+  for(const [pk,title] of groups){
+    const list=metrics.filter(m=>m.pillar===pk); if(!list.length) continue;
+    html+=`<h2>${title}</h2>`;
+    for(const m of list){
+      const isT=m.name===teaserName, locked=!isT, pl=pillLabel[m.pillar], st=statusLabel(m);
+      html+=`<div class="metric ${isT?'teaser':''}">
+        ${isT?'<span class="badge">Jouw #1 kans · meting gratis</span>':''}
+        <div class="top"><h3>${m.name}${m.beta?'<span class="beta">beta</span>':''}<span class="pillTag ${pl[0]}">${pl[1]}</span></h3></div>
+        <div class="measure">
+          <div class="${locked?'lk':''}">
+            <span class="val">${m.v}${m.unit?(' '+m.unit):''}${deltaHTML(m)}</span>
+            <div class="statusrow" style="color:${st.c}">● ${st.t}</div>
+            ${gauge(m)}
+          </div>
+          ${locked?'<div class="lockicon">Exacte meting — ontgrendel hieronder (tips zijn gratis)</div>':''}
+        </div>
+        ${m.what?`<p class="what">${m.what}</p>`:''}
+        ${m.tips?`<p class="tiplabel">Zelf doen — gratis:</p><ul class="tiplist">${m.tips.map(t=>`<li>${t}</li>`).join("")}</ul>`:''}
+        ${m.upsell?`<p class="opt"><i>Optioneel, kost geld:</i> ${m.upsell.b} — ${m.upsell.s}</p>`:''}
+      </div>`;
+    }
+  }
+  const price=ctx.rescan?"€10":"€29", old=ctx.rescan?"€19":"€29";
+  html+=`<div class="card pay" id="paycard">
+    <div class="price">${ctx.rescan?`<s>${old}</s>`:''}<span id="finalPrice">${price}</span></div>
+    <p class="muted" style="margin:4px 0 0">${ctx.rescan?'Vergelijkingsrapport':'Eenmalig'} · ${metrics.length} metrics · voortgang levenslang bewaard</p>
+    <div class="codeRow"><input id="code" placeholder="Code van een creator?"><button class="btn ghost" style="width:auto;padding:12px 16px" id="applyCode">Toepassen</button></div>
+    <div class="ok" id="codeMsg"></div>
+    <button class="btn" id="unlock">Ontgrendel volledig rapport</button>
+    <div class="foot">478 ankerpunten, geschaald via je iris. Indicatief & cosmetisch — geen medisch advies. 16+. Verwerkt op je toestel.</div>
+  </div>`;
+  $("#metricsHost").innerHTML=html;
+
+  $("#applyCode").onclick=()=>{const c=$("#code").value.trim().toUpperCase();
+    if(c.length>=3){$("#finalPrice").textContent=ctx.rescan?"€5":"€24";$("#codeMsg").textContent=`✓ Code ${c} — €5 korting (€5 naar de creator).`;window.__code=c;}
+    else{$("#codeMsg").style.color="var(--bad)";$("#codeMsg").textContent="Ongeldige code.";}};
+  $("#unlock").onclick=()=>{
+    $$(".measure .lk").forEach(el=>el.classList.remove("lk"));
+    $$(".lockicon").forEach(el=>el.remove());
+    let photoURL=""; try{ const s=photos.front.src, w=s.width||s.naturalWidth, h=s.height||s.naturalHeight;
+      const tc=document.createElement("canvas"); tc.width=160; tc.height=Math.round(160*h/w); tc.getContext("2d").drawImage(s,0,0,tc.width,tc.height); photoURL=tc.toDataURL("image/jpeg",0.6);
+    }catch(e){}
+    localStorage.setItem("mesura_prev",JSON.stringify({date:new Date().toLocaleDateString("nl-NL"),metrics:lastMetrics.map(m=>({name:m.name,v:m.v})),photo:photoURL}));
+    $("#paycard").innerHTML='<h3 style="margin:0">Rapport ontgrendeld &amp; opgeslagen</h3><p class="muted" style="margin:6px 0 0">Doe over ~30 dagen (zelfde licht, moment &amp; hoek) een rescan om je voortgang te zien.</p>';
+  };
+}
+</script>
+</body>
+</html>
