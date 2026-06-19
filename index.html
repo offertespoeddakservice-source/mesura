@@ -273,13 +273,13 @@
   <!-- CONFIRM -->
   <section class="screen" id="confirm">
     <h1>Klopt deze foto?</h1>
-    <p class="sub">Dit is de foto die we opmeten. Controleer hem goed — dit is je <b>definitieve</b> keuze.</p>
+    <p class="sub">Dit is je <b>definitieve</b> foto. Eén meting = één foto. Controleer eerst of de kwaliteit goed genoeg is — daarna is er geen weg terug.</p>
     <div class="card" style="text-align:center">
       <canvas id="cvConfirm" style="border-radius:14px;max-width:100%;border:1px solid var(--line)"></canvas>
       <div id="confirmVerdict" style="margin:14px 0 0"></div>
       <div id="confirmChecks" style="margin:12px 0 0;text-align:left;font-size:13px;color:var(--muted)"></div>
       <div id="confirmWarn"></div>
-      <label class="check" id="confirmSureRow" style="margin:16px 0 2px;text-align:left;background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:13px 14px"><input type="checkbox" id="confirmSure"><span>Ik weet zeker dat ik <b>deze</b> foto wil gebruiken. Opnieuw scannen maakt een <b>nieuwe, losse meting</b> die apart telt — niet bedoeld om net zo lang te scannen tot een cijfer me bevalt.</span></label>
+      <label class="check" id="confirmSureRow" style="margin:16px 0 2px;text-align:left;background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:13px 14px"><input type="checkbox" id="confirmSure"><span>Ja, dit is mijn <b>beste</b> foto en ik ga akkoord. Ik begrijp dat dit <b>één definitieve meting</b> is — een nieuwe meting is een aparte, nieuwe scan (niet bedoeld om te blijven scannen tot een cijfer me bevalt).</span></label>
       <button class="btn" id="confirmPhoto" style="margin-top:12px" disabled>Analyseer deze foto</button>
       <button class="btn ghost" id="retakePhoto" style="margin-top:8px">Opnieuw maken</button>
       <p class="foot" style="margin-top:10px">Zelfde foto = exact hetzelfde resultaat. Eerlijke vergelijking lukt alleen als je elke keer dezelfde opstelling (licht, hoek, afstand) gebruikt.</p>
@@ -528,7 +528,11 @@ function showConfirmScreen(cnv,P){
     : `<div class="qverdict warn"><span class="dotq"></span><span>Deze foto <b>kan beter</b><small>${issues.join(" en ")}. Een nieuwe foto geeft waarschijnlijk een nauwkeurigere meting.</small></span></div>`;
   // extra waarschuwing als de foto niet ideaal is
   $("#confirmWarn").innerHTML = perfect ? "" :
-    `<div class="qwarn">Weet je zeker dat je déze foto wil gebruiken in plaats van een nieuwe, betere te maken?</div>`;
+    `<div class="qwarn">Weet je zeker? Dit is je definitieve meting. Een betere foto nu = een betrouwbaarder resultaat.</div>`;
+  // bij 'kan beter' sturen we visueel naar opnieuw maken; bij perfect is analyseren de hoofdactie
+  const bP=$("#confirmPhoto"), bR=$("#retakePhoto");
+  if(perfect){ bP.textContent="Analyseer deze foto"; bP.className="btn"; bR.textContent="Opnieuw maken"; bR.className="btn ghost"; }
+  else{ bP.textContent="Toch deze gebruiken"; bP.className="btn ghost"; bR.textContent="Betere foto maken (aanbevolen)"; bR.className="btn"; }
   $("#confirmSure").checked=false; $("#confirmPhoto").disabled=true; // elke keer opnieuw bevestigen
   show("confirm");
 }
