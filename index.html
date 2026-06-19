@@ -566,11 +566,10 @@ function drawOverlay(src,P){
   const sx=W/iw,sy=H/ih,S=p=>({x:p.x*sx,y:p.y*sy});
   const mid=(P[L.top].x+P[L.nasion].x+P[L.subn].x+P[L.chin].x)/4;
   c.drawImage(src,0,0,W,H);
-  c.fillStyle="rgba(34,211,238,.5)"; P.forEach(p=>{const q=S(p);c.fillRect(q.x,q.y,1.1,1.1);});
-  const ln=(a,b,col)=>{c.strokeStyle=col;c.lineWidth=1;c.beginPath();const A=S(a),B=S(b);c.moveTo(A.x,A.y);c.lineTo(B.x,B.y);c.stroke();};
-  ln({x:mid,y:0},{x:mid,y:ih},"rgba(47,109,246,.8)");
-  ln(P[L.rIn],P[L.rOut],"rgba(52,211,153,.9)"); ln(P[L.lIn],P[L.lOut],"rgba(52,211,153,.9)");
-  ln(P[L.cheekR],P[L.cheekL],"rgba(47,109,246,.5)"); ln(P[L.gonR],P[L.gonL],"rgba(251,113,133,.7)");
+  c.fillStyle="rgba(255,255,255,.30)"; P.forEach(p=>{const q=S(p);c.fillRect(q.x,q.y,0.8,0.8);});
+  const ln=(a,b,col,w)=>{c.strokeStyle=col;c.lineWidth=w;c.beginPath();const A=S(a),B=S(b);c.moveTo(A.x,A.y);c.lineTo(B.x,B.y);c.stroke();};
+  ln({x:mid,y:P[L.top].y},{x:mid,y:P[L.chin].y},"rgba(255,255,255,.4)",0.7);
+  ln(P[L.rIn],P[L.rOut],"rgba(176,96,74,.95)",1); ln(P[L.lIn],P[L.lOut],"rgba(176,96,74,.95)",1);
 }
 const scColor=s=>s>=70?"var(--good)":s>=45?"var(--warn)":"var(--bad)";
 function statusLabel(m){
