@@ -79,7 +79,8 @@
   .status{color:var(--muted);text-align:center;margin:13px 0;min-height:20px;font-size:14px}
 
   .overlay-wrap{display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start}
-  canvas#cv{border-radius:14px;border:1px solid var(--line);max-width:100%;background:#000}
+  .ovcol{flex:1 1 280px;min-width:240px;max-width:400px}
+  canvas#cv{border-radius:14px;border:1px solid var(--line);width:100%;height:auto;background:#000;display:block}
   .mm{flex:1;min-width:170px}
   .mm .row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--line);font-size:13px}
   .mm .row:last-child{border:0} .mm .row b{font-variant-numeric:tabular-nums}
@@ -351,7 +352,10 @@
     <h1>Je meetrapport</h1>
     <div class="card">
       <div class="overlay-wrap">
-        <canvas id="cv" width="300" height="400"></canvas>
+        <div class="ovcol">
+          <canvas id="cv" width="300" height="400"></canvas>
+          <p class="foot" style="margin:7px 0 0">Dit ben jij — de gekleurde lijnen tonen precies wat Mesura heeft opgemeten.</p>
+        </div>
         <div class="mm"><h3 style="margin:0 0 8px;font-size:14px">Afmetingen (mm)</h3><div id="mmList"></div>
           <p class="foot" style="text-align:left;margin-top:10px">Geschaald via je iris (≈11,7&nbsp;mm); we middelen meerdere frames voor stabiliteit. Reken op ±2-3&nbsp;mm — gebruik vooral de verhoudingen en je eigen voortgang.</p></div>
       </div>
@@ -863,14 +867,37 @@ function runReport(){
 function drawOverlay(src,P){
   const cv=$("#cv"),c=cv.getContext("2d");
   const iw=src.width||src.naturalWidth, ih=src.height||src.naturalHeight;
-  const W=300,H=Math.round(W*ih/iw); cv.width=W; cv.height=H;
+  const W=640,H=Math.round(W*ih/iw); cv.width=W; cv.height=H; // hoge res → scherp, CSS schaalt naar breedte
   const sx=W/iw,sy=H/ih,S=p=>({x:p.x*sx,y:p.y*sy});
-  const mid=(P[L.top].x+P[L.nasion].x+P[L.subn].x+P[L.chin].x)/4;
   c.drawImage(src,0,0,W,H);
-  c.fillStyle="rgba(255,255,255,.30)"; P.forEach(p=>{const q=S(p);c.fillRect(q.x,q.y,0.8,0.8);});
-  const ln=(a,b,col,w)=>{c.strokeStyle=col;c.lineWidth=w;c.beginPath();const A=S(a),B=S(b);c.moveTo(A.x,A.y);c.lineTo(B.x,B.y);c.stroke();};
-  ln({x:mid,y:P[L.top].y},{x:mid,y:P[L.chin].y},"rgba(255,255,255,.4)",0.7);
-  ln(P[L.rIn],P[L.rOut],"rgba(176,96,74,.95)",1); ln(P[L.lIn],P[L.lOut],"rgba(176,96,74,.95)",1);
+  // subtiele donkere randen zodat de labels leesbaar zijn
+  const grd=c.createLinearGradient(0,0,0,H);
+  grd.addColorStop(0,"rgba(8,6,4,.32)");grd.addColorStop(.16,"rgba(8,6,4,0)");grd.addColorStop(.8,"rgba(8,6,4,0)");grd.addColorStop(1,"rgba(8,6,4,.42)");
+  c.fillStyle=grd;c.fillRect(0,0,W,H);
+  const mid=(P[L.top].x+P[L.nasion].x+P[L.subn].x+P[L.chin].x)/4*sx;
+  // fijne meetpunten
+  c.fillStyle="rgba(255,255,255,.18)"; for(let i=0;i<P.length;i+=2){const q=S(P[i]);c.fillRect(q.x,q.y,1.1,1.1);}
+  const seg=(a,b,col,w,dash)=>{c.strokeStyle=col;c.lineWidth=w;c.setLineDash(dash||[]);const A=S(a),B=S(b);c.beginPath();c.moveTo(A.x,A.y);c.lineTo(B.x,B.y);c.stroke();c.setLineDash([]);};
+  const TERRA="rgba(189,108,84,.95)", GOLD="rgba(169,128,63,.98)", GREEN="rgba(111,138,85,.98)";
+  // middellijn
+  c.strokeStyle="rgba(255,255,255,.42)";c.lineWidth=1.4;c.setLineDash([6,6]);c.beginPath();c.moveTo(mid,S(P[L.top]).y);c.lineTo(mid,S(P[L.chin]).y);c.stroke();c.setLineDash([]);
+  // gezichtsbreedte (terracotta), ooghoek (terracotta, dun)
+  seg(P[L.cheekR],P[L.cheekL],TERRA,2.4);
+  seg(P[L.rIn],P[L.rOut],TERRA,1.6); seg(P[L.lIn],P[L.lOut],TERRA,1.6);
+  // kaaklijn (groen)
+  c.strokeStyle=GREEN;c.lineWidth=2.8;const gR=S(P[L.gonR]),ch=S(P[L.chin]),gL=S(P[L.gonL]);
+  c.beginPath();c.moveTo(gR.x,gR.y);c.lineTo(ch.x,ch.y);c.lineTo(gL.x,gL.y);c.stroke();
+  // pupilafstand (goud) met iris-stippen
+  seg(P[L.rIris],P[L.lIris],GOLD,2.4);
+  const ri=S(P[L.rIris]),li=S(P[L.lIris]);
+  [ri,li].forEach(p=>{c.fillStyle="#a9803f";c.beginPath();c.arc(p.x,p.y,3.6,0,7);c.fill();c.fillStyle="#fff";c.beginPath();c.arc(p.x,p.y,1.4,0,7);c.fill();});
+  // labels
+  const chip=(text,x,y,bg)=>{c.font="600 16px ui-sans-serif,-apple-system,Segoe UI,sans-serif";c.textBaseline="middle";
+    const tw=c.measureText(text).width,pad=8,w=tw+pad*2,h=24;
+    let lx=Math.max(4,Math.min(W-w-4,x-w/2)),ly=Math.max(2,Math.min(H-h-2,y-h/2));
+    c.fillStyle=bg;rr(c,lx,ly,w,h,7);c.fill();c.fillStyle="#fff";c.fillText(text,lx+pad,ly+h/2+0.5);};
+  chip("Pupilafstand",mid,(ri.y+li.y)/2-26,"rgba(150,108,40,.95)");
+  chip("Kaaklijn",ch.x,ch.y+18,"rgba(86,108,62,.96)");
 }
 const scColor=s=>s>=70?"var(--good)":s>=45?"var(--warn)":"var(--bad)";
 function statusLabel(m){
