@@ -198,6 +198,13 @@
   .prodlist{margin:0;padding-left:16px} .prodlist li{font-size:12.5px;color:var(--muted);margin:6px 0;line-height:1.45}
   .prodlist a{color:var(--accent2);text-decoration:none;font-weight:700;border-bottom:1px solid var(--line2)}
   .prodlist a:hover{border-color:var(--accent2)}
+  details.mdetails{margin-top:6px}
+  details.mdetails>summary{cursor:pointer;font-size:12.5px;font-weight:700;color:var(--accent2);list-style:none;padding:9px 0 2px}
+  details.mdetails>summary::-webkit-details-marker{display:none}
+  details.mdetails>summary::before{content:"+ ";font-weight:700}
+  details.mdetails[open]>summary::before{content:"– "}
+  details.mdetails[open]>summary{color:var(--muted2)}
+  details.mdetails .what{margin-top:8px}
 </style>
 </style>
 </head>
@@ -652,7 +659,7 @@ function buildMetrics(P, src){
          "Contouring voor vrouwen: een matte bronzer of contour-stick nét onder de kaaklijn, een lichte highlight op het bot erboven. Blend goed uit. Dit werkt het best bij neutraal of warm daglicht."].concat(bmiNote?[bmiNote.trim()]:[]),
         ["Een lager lichaamsvetpercentage is veruit de grootste winst — elke procent minder vet is direct zichtbaar in je gezicht, met name onder de kaak en wangen. Kies voor een licht calorietekort (300-500 kcal/dag) en krachttraining — crash-dieten kosten ook spiermassa, wat je gezicht hol maakt.",
          "Trim je baardlijn scherp en hoog: volg de kaak, niet de hals. Een rechte lijn met een precisie-trimmer of scheermesje direct langs de onderkaak 'tekent' een kaaklijn aan die er anders niet of minder is. Dit is een van de snelste visuele verbeteringen voor mannen.",
-         "Houd je tong tegen je gehemelte als je ontspannen zit (mewing-houding) en draag je hoofd rechtop — 'tech neck' door naar beneden kijken creëert een dubbele kin door huidoverschot en vermindert de kaaklijn aanzienlijk op foto's en in het dagelijks leven."].concat(bmiNote?[bmiNote.trim()]:[]),
+         "Let op je houding: draag je hoofd rechtop en je schouders naar achter. 'Tech neck' (de hele dag omlaag naar je telefoon kijken) duwt je kin naar beneden en creëert optisch een dubbele kin — rechtop staan tilt je kaaklijn meteen. (Mewing/tong-tegen-gehemelte heeft géén bewezen effect op je botstructuur — daar adviseren we het niet voor.)"].concat(bmiNote?[bmiNote.trim()]:[]),
         ["Minder zout en alcohol = minder vochtretentie in je gezicht, wat je kaaklijn direct zichtbaarder maakt. Probeer een week lang < 2g zout per dag en geen alcohol — het verschil is zichtbaar.",
          "Gua sha 's ochtends met een koud steen (koel in de koelkast) verplaatst nachtelijk opgebouwde zwelling uit je gezicht en geeft direct meer definitie langs je kaak.",
          "Rechtop houden en tong tegen je gehemelte plaatsen verbetert je houding en de positie van je kaak, wat op foto's en in video merkbaar beter oogt."]).concat(bmiNote?[bmiNote.trim()]:[]),
@@ -1040,10 +1047,13 @@ function renderMetrics(metrics){
         <span class="val">${m.v}${m.unit?' '+m.unit:''}${deltaHTML(m)}</span>
         <div class="statusrow" style="color:${st.c}">● ${st.t}</div>
         ${gauge(m)}
-        ${m.what?`<p class="what">${m.what}</p>`:''}
         <p class="you ${you.cls}">${you.txt}</p>
-        ${m.tips?`<p class="tiplabel">Zelf doen — gratis:</p><ul class="tiplist">${m.tips.map(t=>`<li>${t}</li>`).join("")}</ul>`:''}
-        ${renderUpsell(m.upsell)}
+        ${(m.what||m.tips||(m.upsell&&m.upsell.length))?`<details class="mdetails"${isT?' open':''}>
+          <summary>Wat het is &amp; wat je eraan kunt doen</summary>
+          ${m.what?`<p class="what">${m.what}</p>`:''}
+          ${m.tips?`<p class="tiplabel">Zelf doen — gratis:</p><ul class="tiplist">${m.tips.map(t=>`<li>${t}</li>`).join("")}</ul>`:''}
+          ${renderUpsell(m.upsell)}
+        </details>`:''}
       </div>`;
     }
   }
