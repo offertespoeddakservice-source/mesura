@@ -141,6 +141,50 @@
   .muted{color:var(--muted)} .center{text-align:center}
   .trust{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:14px;color:var(--muted);font-size:11.5px}
   .link{color:var(--accent2);cursor:pointer;text-decoration:underline}
+
+  /* hero / branding */
+  .hero{position:relative;background:linear-gradient(160deg,#f7f1e6,#efe5d3);border:1px solid var(--line);border-radius:20px;padding:30px 24px;margin-bottom:16px;overflow:hidden}
+  .hero h1{font-size:32px;line-height:1.12;margin:0 0 10px}
+  .hero .lead{color:var(--muted);font-size:15.5px;margin:0 0 4px;max-width:30em}
+  .hero .em{color:var(--accent);font-style:italic}
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:6px 0 2px}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:13px}
+  .step .n{font-family:var(--font-serif);font-size:19px;color:var(--accent);font-weight:600;line-height:1}
+  .step b{display:block;font-size:13px;margin:6px 0 2px} .step span{font-size:11.5px;color:var(--muted)}
+  .credstrip{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+  .credstrip span{font-size:11px;color:var(--muted);background:var(--card2);border:1px solid var(--line);border-radius:999px;padding:5px 11px}
+  .preview-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+  .pvcard{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+  .pvcard .lab{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px}
+  .pvcard .num{font-family:var(--font-serif);font-size:20px;margin:3px 0 0}
+  details.how{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:2px 16px;margin-top:14px}
+  details.how summary{cursor:pointer;font-weight:600;font-size:13.5px;padding:11px 0;list-style:none}
+  details.how summary::-webkit-details-marker{display:none}
+  details.how summary::before{content:"+ ";color:var(--accent);font-weight:700}
+  details.how[open] summary::before{content:"– "}
+  details.how p{font-size:13px;color:var(--muted);margin:0 0 12px}
+
+  /* report additions */
+  .sumcard{display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:20px 22px}
+  .sumcard .num{font-family:var(--font-serif);font-size:42px;font-weight:600;color:var(--good);line-height:.9}
+  .sumcard .lbl{font-size:12.5px;color:var(--muted);max-width:9em}
+  .sumcard .opp{border-left:1px solid var(--line);padding-left:18px}
+  .sumcard .opp .k{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--accent);font-weight:700}
+  .sumcard .opp b{display:block;font-size:16px;font-family:var(--font-serif);margin-top:3px}
+  .you{font-size:13px;margin:8px 0 2px;padding:9px 12px;border-radius:10px;background:#eef2ea;border-left:3px solid var(--good);color:var(--txt)}
+  .you.warnote{background:#f6efe2;border-left-color:var(--warn)}
+  .you.fixnote{background:#f1ece3;border-left-color:var(--muted2)}
+  .you b{color:var(--accent)}
+  .refrow{font-size:11px;color:var(--muted2);text-align:right;margin:-4px 0 2px}
+  .mm .row.hasref{border-bottom:0;padding-bottom:0}
+  .sharebtns{display:flex;gap:10px;flex-wrap:wrap;margin-top:4px}
+  .sharebtns .btn{width:auto;flex:1;min-width:140px;padding:12px 16px;font-size:13.5px}
+  .kick{background:linear-gradient(160deg,#f1ece1,#ece4d4)}
+  .kick ol{margin:8px 0 0;padding-left:20px} .kick li{font-size:13px;margin:7px 0}
+  .conf{display:flex;align-items:center;gap:10px;font-size:13px;margin:0 0 4px;font-weight:600}
+  .conf .bar{flex:1;height:7px;border-radius:4px;background:#e6ddcb;overflow:hidden}
+  .conf .bar i{display:block;height:100%;border-radius:4px}
+</style>
 </style>
 </head>
 <body>
@@ -152,25 +196,36 @@
 
   <!-- WELCOME -->
   <section class="screen active" id="welcome">
-    <h1>Objectieve gezichtsanalyse</h1>
-    <p class="sub">We meten je gezicht echt op — met 478 punten en je eigen iris als liniaal. In millimeters, niet geraden.</p>
-    <p class="mission">Gemaakt om je te helpen verbeteren — niet om je te beoordelen. Geen rating, geen oordeel; alleen je sterke punten en wat je zélf kunt doen.</p>
-    <div class="card ba-card">
-      <p class="balabel">Voor / Na</p>
-      <div class="ba" id="ba">
-        <div class="ph">Hier komen echte voor/na-foto's<span>(met toestemming van de persoon)</span></div>
-        <img class="ba-img" src="voorbeeld-voor.jpg" alt="voor" onerror="this.remove()">
-        <div class="after"><img class="ba-img" src="voorbeeld-na.jpg" alt="na" onerror="this.remove()"></div>
-        <div class="handle"></div>
-        <span class="tagb">Voor</span><span class="taga">Na</span>
+    <div class="hero">
+      <h1>Meet je gezicht.<br>Niet je waarde.</h1>
+      <p class="lead">Een precieze gezichtsmeting in <span class="em">echte millimeters</span> — 478 punten, je eigen iris als liniaal. Je ziet je sterke punten en wat je <span class="em">zélf</span> kunt verbeteren. Geen rapportcijfer, geen oordeel.</p>
+      <div class="steps">
+        <div class="step"><div class="n">1</div><b>Eén foto</b><span>Camera of upload — recht vooruit</span></div>
+        <div class="step"><div class="n">2</div><b>478 punten</b><span>Op je toestel gemeten, in mm</span></div>
+        <div class="step"><div class="n">3</div><b>Jouw plan</b><span>Concrete tips per kenmerk</span></div>
       </div>
-      <p class="muted" style="font-size:12px;text-align:center;margin:10px 0 0">← sleep om te vergelijken →</p>
+      <div class="credstrip">
+        <span>100% op je toestel</span><span>Foto nooit geüpload</span><span>Geen account</span><span>Gratis</span>
+      </div>
     </div>
     <div class="card">
-      <p style="margin:0 0 16px;line-height:1.6">We meten met 478 punten en je iris als liniaal, dus in echte millimeters. Alles gebeurt op je eigen toestel — je foto wordt nooit verstuurd of bewaard. En je krijgt geen oordeel: we laten zien wat je sterke punten zijn en wat je zélf kunt veranderen (huid, definitie, grooming), los van wat vastligt.</p>
+      <p class="balabel" style="font-weight:600;margin:0 0 6px">Wat je straks ziet</p>
+      <div class="preview-grid">
+        <div class="pvcard"><div class="lab">Pupilafstand</div><div class="num">63,4 mm</div></div>
+        <div class="pvcard"><div class="lab">Kaaklijn: scherpte</div><div class="num">binnen bereik</div></div>
+        <div class="pvcard"><div class="lab">Huid: egaalheid</div><div class="num">jouw #1 kans</div></div>
+        <div class="pvcard"><div class="lab">Gezichtsbreedte</div><div class="num">rond gemiddeld</div></div>
+      </div>
+      <p class="muted" style="font-size:12px;margin:12px 0 0">Plus een deel-kaart die je kunt opslaan en vergelijken over 30 dagen.</p>
+    </div>
+    <div class="card">
       <label class="check"><input type="checkbox" id="consent"><span>Ik ben <b>16+</b> en begrijp dat dit een <b>cosmetische, indicatieve</b> analyse is — geen medisch advies. Verwerking gebeurt lokaal.</span></label>
       <button class="btn" id="toInfo" disabled>Start meting</button>
-      <p class="center" style="margin-top:14px"><span class="link" id="toPrivacy">Privacy &amp; voorwaarden</span></p>
+      <details class="how">
+        <summary>Hoe meet Mesura — en waarom kloppen de cijfers?</summary>
+        <p>Een menselijke iris is bij vrijwel iedereen <b>≈ 11,7 mm</b> breed (heel lage variatie). Mesura herkent je iris en gebruikt 'm als ingebouwde liniaal: pixels → echte millimeters. Daardoor meten we afstanden objectief, in plaats van te gokken. De 478 ankerpunten komen van Google's MediaPipe-model. Eerlijk: de mm-waarden hebben ±5-10% marge en zijaanzicht-hoeken zijn schattingen — daarom tonen we bereiken, geen schijnprecisie.</p>
+      </details>
+      <p class="center" style="margin-top:6px"><span class="link" id="toPrivacy">Privacy &amp; voorwaarden</span></p>
     </div>
     <div class="card center" id="rescanCard" style="display:none">
       <b>Welkom terug</b><p class="muted" id="prevInfo" style="margin:6px 0 12px"></p>
@@ -207,10 +262,23 @@
     </div>
   </section>
 
+  <!-- CONFIRM -->
+  <section class="screen" id="confirm">
+    <h1>Klopt deze foto?</h1>
+    <p class="sub">Controleer of je gezicht scherp in beeld is, recht vooruit kijkt en de mal goed vult. Zo ja — analyseer.</p>
+    <div class="card" style="text-align:center">
+      <canvas id="cvConfirm" style="border-radius:14px;max-width:100%;border:1px solid var(--line)"></canvas>
+      <div id="confirmChecks" style="margin:14px 0 0;text-align:left;font-size:13px;color:var(--muted)"></div>
+      <button class="btn" id="confirmPhoto" style="margin-top:16px">Analyseer deze foto</button>
+      <button class="btn ghost" id="retakePhoto" style="margin-top:8px">Opnieuw maken</button>
+      <p class="foot" style="margin-top:10px">Zelfde foto = exact hetzelfde resultaat. Zorg elke meting voor dezelfde opstelling voor een eerlijke vergelijking.</p>
+    </div>
+  </section>
+
   <!-- CAPTURE -->
   <section class="screen" id="capture">
-    <h1>Je foto</h1>
-    <p class="sub">Voor betrouwbare, herhaalbare metingen: zorg dat je gezicht netjes in de mal valt.</p>
+    <h1>Je foto maken</h1>
+    <p class="sub">Sta stil, kijk recht in de lens en wacht tot de mal groen wordt — we maken dan automatisch de foto.</p>
     <div class="refbox" id="rescanRef" style="display:none;margin-bottom:14px"><img id="rescanRefImg" alt="vorige foto"><div><b>Dit was je vorige foto</b><br><span>Match zoveel mogelijk: zelfde licht, zelfde moment van de dag, zelfde hoek en afstand. Dát maakt je vergelijking eerlijk.</span></div></div>
     <div class="card">
       <div class="tabs"><button class="on" data-tab="cam">Maak foto (aanbevolen)</button><button data-tab="up">Upload (minder zeker)</button></div>
@@ -241,11 +309,13 @@
       </div>
 
       <ul class="instr">
-        <b>Voor herhaalbare metingen (belangrijk bij rescan):</b>
-        <li>• <b>Zelfde licht & zelfde tijd</b> van de dag — licht verandert je huidmeting het meest</li>
-        <li>• Neutrale blik, mond dicht, haar weg, geen bril/pet</li>
-        <li>• Camera op ooghoogte, recht vooruit (frontaal) / exact 90° (profiel)</li>
-        <li>• Zelfde afstand: gezicht vult de mal</li>
+        <b>Voor een betrouwbaar resultaat:</b>
+        <li>• <b>Witte of lichte muur</b> als achtergrond — geen rommelige ruimte</li>
+        <li>• <b>Daglicht van voren</b> (raam voor je, niet achter je) — geen felle spots of schaduwen</li>
+        <li>• Camera op <b>ooghoogte</b>, arm gestrekt of op statief — niet van boven of onder</li>
+        <li>• Afstand <b>50–80 cm</b>: gezicht vult de mal ruim maar niet afgesneden</li>
+        <li>• Neutrale blik, mond dicht, haar weg van voorhoofd &amp; ogen, geen bril/pet/hoed</li>
+        <li>• Bij rescan: <b>zelfde licht, zelfde tijdstip, zelfde afstand</b> — dat maakt vergelijken eerlijk</li>
       </ul>
       <div class="status" id="status"></div>
     </div>
@@ -404,9 +474,41 @@ function captureCam(){
     const P=detectImg(cnv);
     if(!P){ $("#status").textContent="Gezicht niet herkend in foto — probeer opnieuw."; show("capture"); startCam(); return; }
     photos.front={src:cnv,P};
-    runReport();
+    showConfirmScreen(cnv,P);
   }).catch(e=>{ $("#status").textContent="Fout bij analyseren: "+e.message; show("capture"); });
 }
+
+function showConfirmScreen(cnv,P){
+  const cv=$("#cvConfirm");
+  cv.width=cnv.width; cv.height=cnv.height;
+  const c=cv.getContext("2d");
+  c.drawImage(cnv,0,0);
+  // draw landmark dots so user sees detection worked
+  c.fillStyle="rgba(176,96,74,0.7)";
+  const step=3;
+  for(let i=0;i<P.length;i+=step){ c.beginPath(); c.arc(P[i].x,P[i].y,2,0,Math.PI*2); c.fill(); }
+  // iris crosses
+  [L.rIris,L.lIris].forEach(idx=>{
+    const p=P[idx]; if(!p) return;
+    c.strokeStyle="#34d399"; c.lineWidth=2;
+    c.beginPath(); c.moveTo(p.x-8,p.y); c.lineTo(p.x+8,p.y); c.stroke();
+    c.beginPath(); c.moveTo(p.x,p.y-8); c.lineTo(p.x,p.y+8); c.stroke();
+  });
+  // checklist
+  const checks=[];
+  const ih=cnv.height, iw=cnv.width;
+  const faceH=D(P[L.top],P[L.chin])/ih;
+  const yaw=turned(P.map(p=>({x:p.x/iw,y:p.y/ih})));
+  if(faceH<0.3) checks.push({ok:false,txt:"Gezicht te klein — kom dichter bij de camera"});
+  else checks.push({ok:true,txt:"Gezicht goed in beeld"});
+  if(yaw>0.08) checks.push({ok:false,txt:"Hoofd iets te gedraaid — kijk recht in de lens"});
+  else checks.push({ok:true,txt:"Hoofd recht"});
+  checks.push({ok:true,txt:"Meting is determinisch — dezelfde foto geeft altijd hetzelfde resultaat"});
+  $("#confirmChecks").innerHTML=checks.map(ch=>`<p style="margin:4px 0"><span style="color:${ch.ok?"var(--good)":"var(--warn)"}">${ch.ok?"✓":"⚠"}</span> ${ch.txt}</p>`).join("");
+  show("confirm");
+}
+$("#confirmPhoto").addEventListener("click",()=>runReport());
+$("#retakePhoto").addEventListener("click",()=>{ photos.front=null; show("capture"); startCam(); });
 
 // ================= GEOMETRY + METRICS =================
 const L={chin:152,top:10,glab:9,subn:2,noseTip:1,nasion:168,rOut:33,rIn:133,lIn:362,lOut:263,
@@ -630,9 +732,12 @@ function runReport(){
   const F=buildMetrics(rollCorrect(photos.front.P), photos.front.src);
   let metrics=[...F.metrics];
   for(const side of ["left","right"]) if(photos[side]&&photos[side].P) metrics=metrics.concat(profileMetrics(photos[side].P,side).map(m=>({...m,name:m.name+(side==="left"?" (L)":" (R)")})));
-  lastMetrics=metrics;
+  lastMetrics=metrics; lastMM=F.mmRows;
   drawOverlay(photos.front.src,photos.front.P);
-  $("#mmList").innerHTML=F.mmRows.map(([k,v])=>`<div class="row"><span>${k}</span><b>${v}</b></div>`).join("");
+  $("#mmList").innerHTML=F.mmRows.map(([k,v])=>{
+    const ref=mmContext(k,parseFloat(v));
+    return `<div class="row${ref?' hasref':''}"><span>${k}</span><b>${v}</b></div>${ref?`<div class="refrow">${ref}</div>`:''}`;
+  }).join("");
   renderMetrics(metrics);
   $("#status").textContent=""; show("report");
 }
@@ -666,25 +771,140 @@ function deltaHTML(m){ if(!prev||!prev.metrics) return "";
 function renderUpsell(u){
   if(!u) return '';
   const q=encodeURIComponent(u.b);
-  return `<p class="opt"><i>Optioneel:</i> <a href="https://www.bol.com/nl/nl/s/?searchtext=${q}" target="_blank" rel="noopener" style="color:var(--accent2)">${u.b}</a> — ${u.s}</p>`;
+  return `<p class="opt"><i>Aanrader:</i> een <a href="https://www.bol.com/nl/nl/s/?searchtext=${q}" target="_blank" rel="noopener" style="color:var(--accent2)">${u.b.toLowerCase()}</a> — ${u.s}. <span style="opacity:.7">(affiliate; je betaalt niets extra)</span></p>`;
+}
+
+// ---- population context: geeft elk mm-getal betekenis (gemiddelde + waar jij zit) ----
+const MMREF={
+  "Pupilafstand (PD)":{man:64,vrouw:62,sd:3.4},
+  "Gezichtsbreedte":{man:139,vrouw:129,sd:6.5},
+  "Gezichtshoogte":{man:188,vrouw:176,sd:9},
+  "Mondbreedte":{man:53,vrouw:50,sd:4},
+  "Neusbreedte":{man:35,vrouw:31,sd:2.8},
+};
+function mmContext(name,val){
+  const r=MMREF[name]; if(!r||!val) return "";
+  const avg=ctx.gender==="man"?r.man:ctx.gender==="vrouw"?r.vrouw:(r.man+r.vrouw)/2;
+  const z=(val-avg)/r.sd;
+  let word;
+  if(Math.abs(z)<0.6) word="rond gemiddeld";
+  else if(z<=-0.6&&z>-1.4) word="iets onder gemiddeld";
+  else if(z<=-1.4) word="onder gemiddeld";
+  else if(z>=0.6&&z<1.4) word="iets boven gemiddeld";
+  else word="boven gemiddeld";
+  const who=ctx.gender==="man"?"man":ctx.gender==="vrouw"?"vrouw":"volw.";
+  return `${word} · ${who} ≈ ${avg} mm`;
+}
+// ---- personalisatie: één regel die echt over JOUW meting gaat (combineert "voor jou" + maakbaarheid) ----
+function personalLine(m){
+  const within=m.v>=m.iLo&&m.v<=m.iHi, low=m.v<m.iLo;
+  if(within){
+    const note=m.pillar==="maakbaar"
+      ? "Dit is al een sterk punt van je — je doel hier is <b>behouden</b>, niet veranderen."
+      : "Dit valt netjes binnen het normale bereik — een natuurlijk sterk punt.";
+    return {cls:"", txt:`<b>Voor jou:</b> jouw ${m.v}${m.unit?' '+m.unit:''} ligt binnen het ideale bereik. ${note}`};
+  }
+  const dir=low?"aan de lage kant":"aan de hoge kant";
+  if(m.pillar==="maakbaar")
+    return {cls:"warnote", txt:`<b>Voor jou:</b> jouw ${m.v}${m.unit?' '+m.unit:''} zit ${dir} — en dit is <b>goed maakbaar</b>. Hier ligt waarschijnlijk je grootste, haalbare winst; de tips hieronder pakken precies dít aan.`};
+  if(m.pillar==="deels")
+    return {cls:"warnote", txt:`<b>Voor jou:</b> jouw ${m.v}${m.unit?' '+m.unit:''} zit ${dir}. Dit is <b>deels te sturen</b> via levensstijl en styling — de basis ligt vast, maar je kunt het merkbaar bijsturen.`};
+  return {cls:"fixnote", txt:`<b>Voor jou:</b> jouw ${m.v}${m.unit?' '+m.unit:''} zit ${dir}. Dit ligt <b>grotendeels vast</b> in je botstructuur — stuur het slim met kapsel en styling, en steek er geen energie in om het te "fixen".`};
+}
+// ---- betrouwbaarheid van DEZE foto: voelbaar maken hoe goed de opname was ----
+function frontConfidence(){
+  const P=photos.front.P,s=photos.front.src;
+  const ih=s.height||s.naturalHeight,iw=s.width||s.naturalWidth;
+  const faceH=D(P[L.top],P[L.chin])/ih, yaw=turned(P.map(p=>({x:p.x/iw,y:p.y/ih})));
+  let score=100;
+  if(faceH<0.45) score-=Math.round((0.45-faceH)*130);
+  if(yaw>0.04) score-=Math.round((yaw-0.04)*380);
+  score=Math.max(45,Math.min(100,score));
+  const label=score>=85?"hoog":score>=68?"goed":"redelijk";
+  const col=score>=85?"var(--good)":score>=68?"var(--warn)":"var(--bad)";
+  const hint=score>=85?"Scherp, recht en groot in beeld — ideaal voor vergelijken.":score>=68?"Prima opname. Voor nóg scherpere vergelijking: gezicht groter en exact recht.":"Bruikbaar, maar gezicht klein of iets gedraaid — een nieuwe foto verbetert de nauwkeurigheid.";
+  return {score,label,col,hint};
+}
+// ---- deelbare beeldkaart (1080×1350, IG-formaat) — het virale artefact ----
+let lastMM=null;
+function rr(x,a,b,w,h,r){x.beginPath();x.moveTo(a+r,b);x.arcTo(a+w,b,a+w,b+h,r);x.arcTo(a+w,b+h,a,b+h,r);x.arcTo(a,b+h,a,b,r);x.arcTo(a,b,a+w,b,r);x.closePath();}
+function buildShareCard(){
+  const W=1080,H=1350,c=document.createElement("canvas");c.width=W;c.height=H;const x=c.getContext("2d");
+  x.fillStyle="#f3ede2";x.fillRect(0,0,W,H);
+  x.fillStyle="#b0604a";x.fillRect(0,0,W,14);
+  x.textBaseline="top";
+  x.fillStyle="#322c24";x.font="600 46px Georgia, serif";x.fillText("MESURA",64,60);
+  x.fillStyle="#7c7163";x.font="24px -apple-system, Segoe UI, sans-serif";x.fillText("Mijn gezichtsmeting — in echte millimeters",64,124);
+  // overlay/mesh-foto in een afgeronde box (cover-fit)
+  const cv=$("#cv");
+  const bx=64,by=178,bw=W-128,bh=620;
+  rr(x,bx,by,bw,bh,28);x.save();x.clip();
+  const iw=cv.width,ih=cv.height,sc=Math.max(bw/iw,bh/ih),dw=iw*sc,dh=ih*sc;
+  x.drawImage(cv,bx+(bw-dw)/2,by+(bh-dh)/2,dw,dh);
+  x.restore();
+  // stat-rij
+  const stats=[];
+  if(lastMM) lastMM.slice(0,2).forEach(([k,v])=>stats.push([k,v]));
+  const strong=(lastMetrics||[]).filter(m=>m.v>=m.iLo&&m.v<=m.iHi).length;
+  stats.push(["Sterke punten",String(strong)]);
+  const sy=842,sw=(W-128-2*20)/3;
+  stats.forEach(([k,v],i)=>{
+    const sx=64+i*(sw+20);
+    x.fillStyle="#fbf7ef";rr(x,sx,sy,sw,150,18);x.fill();
+    x.strokeStyle="#e0d6c4";x.lineWidth=1.5;rr(x,sx,sy,sw,150,18);x.stroke();
+    x.fillStyle="#7c7163";x.font="20px -apple-system, sans-serif";x.fillText(k,sx+18,sy+22,sw-36);
+    x.fillStyle="#b0604a";x.font="600 38px Georgia, serif";x.fillText(v,sx+18,sy+64,sw-36);
+  });
+  // mission + footer
+  x.fillStyle="#322c24";x.font="italic 30px Georgia, serif";
+  x.fillText("Meten, niet beoordelen.",64,1052);
+  x.fillStyle="#7c7163";x.font="24px -apple-system, sans-serif";
+  x.fillText("Doe je eigen gratis meting — privé, op je toestel:",64,1116);
+  x.fillStyle="#b0604a";x.font="600 28px -apple-system, sans-serif";
+  x.fillText("offertespoeddakservice-source.github.io/mesura",64,1156);
+  x.fillStyle="#b0604a";x.fillRect(0,H-14,W,14);
+  return c;
+}
+async function shareCard(){
+  let c; try{ c=buildShareCard(); }catch(e){ return false; }
+  return new Promise(res=>{
+    c.toBlob(async b=>{
+      if(!b){res(false);return;}
+      const file=new File([b],"mesura-meting.png",{type:"image/png"});
+      const url="https://offertespoeddakservice-source.github.io/mesura/"+((sessionStorage.getItem("mesura_code")||"")?`?code=${sessionStorage.getItem("mesura_code")}`:"");
+      if(navigator.canShare&&navigator.canShare({files:[file]})){
+        try{ await navigator.share({files:[file],title:"Mijn Mesura meting",text:"Meten, niet beoordelen. Doe je eigen gratis gezichtsmeting:",url}); res(true); return; }catch(e){}
+      }
+      // fallback: download
+      const a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="mesura-meting.png";a.click();
+      setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+      res(true);
+    },"image/png");
+  });
 }
 function renderMetrics(metrics){
   const inRange=metrics.filter(m=>m.v>=m.iLo&&m.v<=m.iHi).length;
-  const teaserName=[...metrics].sort((a,b)=>a.score-b.score)[0].name;
+  const opp=([...metrics].filter(m=>m.pillar==="maakbaar"&&!(m.v>=m.iLo&&m.v<=m.iHi)).sort((a,b)=>a.score-b.score)[0])
+          || ([...metrics].filter(m=>m.pillar==="maakbaar").sort((a,b)=>a.score-b.score)[0])
+          || [...metrics].sort((a,b)=>a.score-b.score)[0];
+  const teaserName=opp.name;
   const groups=[["maakbaar","Maakbaar — je snelste winst"],["deels","Deels te beïnvloeden"],["structureel","Structureel — je basis"]];
   const savedCode=sessionStorage.getItem("mesura_code")||"";
+  const conf=frontConfidence();
   let html="";
-  html+=`<p class="missionR">Dit rapport helpt je verbeteren — het is geen oordeel over je gezicht.</p>`;
-  html+=`<div class="card" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;padding:18px 22px">
-    <div><div style="font-size:30px;font-weight:800;color:var(--good);letter-spacing:-1px">${inRange}<span style="font-size:16px;font-weight:500;color:var(--muted);letter-spacing:0">/${metrics.length}</span></div>
-    <p style="margin:2px 0 0;color:var(--muted);font-size:12.5px">punten binnen normaal bereik</p></div>
-    <button id="shareBtn" class="btn ghost" style="width:auto;padding:10px 18px;font-size:13.5px">Deel je scan</button>
+  html+=`<p class="missionR">Dit rapport helpt je verbeteren — het is geen oordeel over je gezicht. Geen rapportcijfer; alleen je sterke punten en wat je zélf kunt doen.</p>`;
+  html+=`<div class="card sumcard">
+    <div style="display:flex;align-items:center;gap:14px"><div class="num">${inRange}</div><p class="lbl">van je ${metrics.length} kenmerken zijn een natuurlijk sterk punt</p></div>
+    <div class="opp"><span class="k">Je grootste kans</span><b>${opp.name.replace(/<[^>]+>/g,'')}</b></div>
   </div>`;
-  html+=`<div class="card reliab"><b>Hoe eerlijk is deze test?</b>
+  html+=`<div class="card reliab">
+    <div class="conf"><span>Betrouwbaarheid van deze foto: <span style="color:${conf.col}">${conf.label}</span></span><span class="bar"><i style="width:${conf.score}%;background:${conf.col}"></i></span></div>
+    <p class="tip" style="margin:0 0 10px">${conf.hint}</p>
+    <b>Hoe eerlijk is deze test?</b>
     <ul class="tiplist">
-      <li><b>Klopt goed:</b> het opmeten van je gezicht op één duidelijke, rechte foto.</li>
-      <li><b>Ruwe schatting:</b> de mm-waarden (±5-10%) en alle zijaanzicht-hoeken.</li>
-      <li><b>Geen rapportcijfer:</b> we tonen of je binnen het normale bereik valt — geen score voor je gezicht.</li>
+      <li><b>Klopt goed:</b> het opmeten van je gezicht op één duidelijke, rechte foto (zelfde foto → exact zelfde uitkomst).</li>
+      <li><b>Ruwe schatting:</b> de mm-waarden (±5-10%) en alle zijaanzicht-hoeken — daarom tonen we bereiken, geen schijnprecisie.</li>
+      <li><b>Geen rapportcijfer:</b> we tonen of je binnen het normale bereik valt en wat je kunt sturen — geen score voor je gezicht.</li>
       <li><b>Zo gebruik je 't:</b> volg je eigen voortgang (zelfde licht & hoek) en pak de maakbare tips.</li>
     </ul></div>`;
   if(ctx.rescan&&prev){
@@ -699,7 +919,7 @@ function renderMetrics(metrics){
     const list=metrics.filter(m=>m.pillar===pk); if(!list.length) continue;
     html+=`<h2>${title}</h2>`;
     for(const m of list){
-      const isT=m.name===teaserName, pl=pillLabel[m.pillar], st=statusLabel(m);
+      const isT=m.name===teaserName, pl=pillLabel[m.pillar], st=statusLabel(m), you=personalLine(m);
       html+=`<div class="metric${isT?' teaser':''}">
         ${isT?'<span class="badge">Jouw #1 kans</span>':''}
         <div class="top"><h3>${m.name}${m.beta?'<span class="beta">beta</span>':''}<span class="pillTag ${pl[0]}">${pl[1]}</span></h3></div>
@@ -707,11 +927,35 @@ function renderMetrics(metrics){
         <div class="statusrow" style="color:${st.c}">● ${st.t}</div>
         ${gauge(m)}
         ${m.what?`<p class="what">${m.what}</p>`:''}
+        <p class="you ${you.cls}">${you.txt}</p>
         ${m.tips?`<p class="tiplabel">Zelf doen — gratis:</p><ul class="tiplist">${m.tips.map(t=>`<li>${t}</li>`).join("")}</ul>`:''}
         ${renderUpsell(m.upsell)}
       </div>`;
     }
   }
+  const kickTips=(opp.tips||[]).slice(0,3);
+  if(kickTips.length) html+=`<div class="card kick">
+    <b style="font-size:15px">Jouw 7-dagen kickstart</b>
+    <p class="muted" style="font-size:13px;margin:8px 0 0">Begin vandaag bij je grootste kans — <b>${opp.name.replace(/<[^>]+>/g,'')}</b>. Doe dit één week vol, dan zie je het terug bij je volgende meting.</p>
+    <ol>${kickTips.map(t=>`<li>${t}</li>`).join("")}</ol>
+  </div>`;
+  html+=`<div class="card center">
+    <b style="font-size:15px">Deel of bewaar je meting</b>
+    <p class="muted" style="font-size:13px;margin:8px 0 14px">Maak een nette beeldkaart van je meting — om te bewaren, te vergelijken of te delen. Je foto blijft op je toestel; de kaart maak je zelf aan.</p>
+    <div class="sharebtns">
+      <button class="btn" id="shareCardBtn">Deel-kaart maken</button>
+      <button class="btn ghost" id="shareLinkBtn">Link kopiëren</button>
+    </div>
+  </div>`;
+  if(!photos.left&&!photos.right) html+=`<div class="card">
+    <b style="font-size:15px">Wil je het volledige beeld? Voeg een zijfoto toe</b>
+    <p class="muted" style="font-size:13px;margin:8px 0 12px">Een <b>90°-profielfoto</b> ontgrendelt 2 metingen die recht-van-voren onmogelijk zijn: je <b>kaakhoek</b> en de <b>neus–bovenliphoek</b> van opzij. Sta met je zijkant naar de camera, kin recht.</p>
+    <div class="slots">
+      <label class="slot"><span class="opt">90°</span><span class="lab">Links profiel</span><span class="hint">zijkant</span><input type="file" accept="image/*" data-reinput="left"></label>
+      <label class="slot"><span class="opt">90°</span><span class="lab">Rechts profiel</span><span class="hint">zijkant</span><input type="file" accept="image/*" data-reinput="right"></label>
+    </div>
+    <div class="status" id="reStatus"></div>
+  </div>`;
   html+=`<div class="card" id="savecard">
     <b style="font-size:15px">Bewaar je meting & vergelijk over 30 dagen</b>
     <p class="muted" style="font-size:13px;margin:8px 0 14px">Sla je resultaten op je toestel op. Doe na ~30 dagen een rescan om te zien hoeveel je verbeterd bent — zelfde licht, zelfde hoek.</p>
@@ -724,10 +968,26 @@ function renderMetrics(metrics){
   $("#metricsHost").innerHTML=html;
 
   const shareUrl="https://offertespoeddakservice-source.github.io/mesura/"+(savedCode?`?code=${savedCode}`:"");
-  $("#shareBtn").onclick=()=>{
-    if(navigator.share){ navigator.share({title:"Mijn Mesura scan",text:`${inRange} van ${metrics.length} punten binnen normaal bereik — doe jij ook een gratis gezichtsmeting?`,url:shareUrl}).catch(()=>{}); }
-    else{ navigator.clipboard?.writeText(shareUrl).then(()=>{ const b=$("#shareBtn"); b.textContent="✓ Link gekopieerd"; setTimeout(()=>b.textContent="Deel je scan",2500); }); }
+  if($("#shareCardBtn")) $("#shareCardBtn").onclick=async()=>{
+    const b=$("#shareCardBtn"); b.textContent="Kaart maken…"; b.disabled=true;
+    const ok=await shareCard(); b.disabled=false; b.textContent=ok?"✓ Klaar":"Probeer opnieuw";
+    setTimeout(()=>b.textContent="Deel-kaart maken",2600);
   };
+  if($("#shareLinkBtn")) $("#shareLinkBtn").onclick=()=>{
+    if(navigator.share){ navigator.share({title:"Mijn Mesura meting",text:`${inRange} natuurlijke sterke punten — doe jij ook een gratis, privé gezichtsmeting?`,url:shareUrl}).catch(()=>{}); }
+    else{ navigator.clipboard?.writeText(shareUrl).then(()=>{ const b=$("#shareLinkBtn"); b.textContent="✓ Gekopieerd"; setTimeout(()=>b.textContent="Link kopiëren",2500); }); }
+  };
+  $$("input[data-reinput]").forEach(inp=>inp.addEventListener("change",e=>{
+    const f=e.target.files[0]; if(!f) return; const side=inp.dataset.reinput;
+    $("#reStatus")&&($("#reStatus").textContent="Zijfoto analyseren…");
+    const img=new Image();
+    img.onload=()=>{ ensureMode("IMAGE").then(()=>{
+      const P=detectImg(img);
+      if(!P){ $("#reStatus").textContent="Geen gezicht op de zijfoto — neem een duidelijke 90°-foto."; return; }
+      photos[side]={src:img,P}; runReport();
+    }).catch(err=>{ $("#reStatus")&&($("#reStatus").textContent="Fout: "+err.message); }); };
+    img.src=URL.createObjectURL(f);
+  }));
   if(!savedCode&&$("#applyCode")){
     $("#applyCode").onclick=()=>{
       const c=$("#code").value.trim().toUpperCase().replace(/[^A-Z0-9]/g,"");
@@ -735,13 +995,33 @@ function renderMetrics(metrics){
       else{ $("#codeMsg").style.color="var(--bad)"; $("#codeMsg").textContent="Voer een geldige code in (min. 3 tekens)."; }
     };
   }
-  $("#saveScan").onclick=()=>{
+  if($("#saveScan")) $("#saveScan").onclick=()=>{
     let photoURL=""; try{ const s=photos.front.src,w=s.naturalWidth||s.width,h=s.naturalHeight||s.height;
       const tc=document.createElement("canvas");tc.width=160;tc.height=Math.round(160*h/w);tc.getContext("2d").drawImage(s,0,0,tc.width,tc.height);photoURL=tc.toDataURL("image/jpeg",0.6); }catch(e){}
     localStorage.setItem("mesura_prev",JSON.stringify({date:new Date().toLocaleDateString("nl-NL"),metrics:lastMetrics.map(m=>({name:m.name,v:m.v})),photo:photoURL}));
     $("#savecard").innerHTML='<b style="font-size:15px">Opgeslagen ✓</b><p class="muted" style="font-size:13px;margin:6px 0 0">Over ~30 dagen: klik op "Vergelijk met je vorige meting" op de startpagina. Zelfde licht, hoek en tijdstip voor een eerlijke vergelijking.</p>';
   };
 }
+
+// ---- QA-hook: ?demo toont het rapport met synthetische data (geen camera nodig) ----
+function demoReport(){
+  const src=document.createElement("canvas");src.width=300;src.height=400;const dc=src.getContext("2d");
+  dc.fillStyle="#d8b6a2";dc.fillRect(0,0,300,400);dc.fillStyle="#c79f8b";dc.beginPath();dc.ellipse(150,190,82,112,0,0,7);dc.fill();
+  const P=Array.from({length:478},()=>({x:150,y:200})),S=(i,x,y)=>P[i]={x,y};
+  S(L.top,150,72);S(L.chin,150,358);S(L.glab,150,150);S(L.subn,150,250);S(L.nasion,150,140);S(L.noseTip,150,232);
+  S(L.rOut,108,170);S(L.rIn,135,170);S(L.lIn,165,170);S(L.lOut,192,170);S(L.rIris,121,170);S(L.lIris,179,170);
+  S(L.rIrisR,116,170);S(L.rIrisL,126,170);S(L.rIrisT,121,165);S(L.rIrisB,121,175);
+  S(L.lIrisR,174,170);S(L.lIrisL,184,170);S(L.lIrisT,179,165);S(L.lIrisB,179,175);
+  S(L.cheekR,90,200);S(L.cheekL,210,200);S(L.mR,126,292);S(L.mL,174,292);S(L.alarR,138,246);S(L.alarL,162,246);
+  S(L.gonR,116,300);S(L.gonL,184,300);S(L.stomU,150,288);S(L.stomL,150,296);S(L.lipTop,150,280);S(L.lipBot,150,308);
+  S(L.browR,124,150);S(L.browL,176,150);S(L.cheekPR,118,215);S(L.cheekPL,182,215);S(L.foreheadC,150,110);
+  ctx.gender="man";photos.front={src,P};
+  const F=buildMetrics(rollCorrect(P),src);lastMetrics=[...F.metrics];lastMM=F.mmRows;
+  drawOverlay(src,P);
+  $("#mmList").innerHTML=F.mmRows.map(([k,v])=>{const ref=mmContext(k,parseFloat(v));return `<div class="row${ref?' hasref':''}"><span>${k}</span><b>${v}</b></div>${ref?`<div class="refrow">${ref}</div>`:''}`;}).join("");
+  renderMetrics(lastMetrics);show("report");
+}
+if(new URLSearchParams(location.search).has("demo")) setTimeout(demoReport,300);
 </script>
 </body>
 </html>

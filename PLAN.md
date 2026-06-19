@@ -18,11 +18,23 @@ Een **gratis, privé web-tool** die je gezicht écht opmeet (in millimeters) en 
 - **Merk:** Mesura, warm & menselijk.
 
 ## Waar het nu staat
-- ✅ Werkende web-app: camera-mal, meting (478 punten + iris→mm), rapport, rescan-vergelijking met oude foto, man/vrouw-tips, privacy-pagina.
+- ✅ Werkende web-app: camera-mal met auto-capture, **bevestigingsscherm** (controleer foto vóór analyse), meting (478 punten + iris→mm, IMAGE-mode = deterministisch), rapport, rescan-vergelijking, man/vrouw-tips, privacy-pagina.
 - ✅ **Online (live)**: https://offertespoeddakservice-source.github.io/mesura/ — GitHub Pages, repo `offertespoeddakservice-source/mesura`.
-- ✅ **20+ verbeteringen (jun 2026)**: alle metrics zichtbaar (geen blur), progress-kaart (X/Y bereik), deel-knop (Web Share API), affiliate-links via bol.com, creator-code via URL-param (?code=NAAM), save-kaart vervangt valse €29-paywall, OG/SEO-meta, crash-fixes engine-null, emoji-vrij, betere camera-timing.
+- ✅ **Grote kwaliteitsslag (jun 2026)** — van "leuke truc" naar product dat waarde levert:
+  - **Branding-hero** op de startpagina (serif headline "Meet je gezicht. Niet je waarde.", 3-stappen, credibility-chips, "wat je straks ziet"-preview).
+  - **Context bij elk mm-getal** ("iets boven gemiddeld · man ≈ 64 mm") — getallen krijgen betekenis i.p.v. dood cijfer.
+  - **Persoonlijke "Voor jou"-regel** per kenmerk: gaat echt over jóuw meting + wat je eraan kunt doen (maakbaar/deels/vast).
+  - **"4/8"-rapportcijfer weg** → positieve framing ("X natuurlijke sterke punten" + "je grootste kans: <naam>").
+  - **Betrouwbaarheids-meter** van de foto (voelbaar hoe goed de opname was).
+  - **Deelbare beeldkaart** (1080×1350, IG-formaat, met mesh-foto + mm + branding) → download/Web-Share = viraal artefact.
+  - **7-dagen kickstart** afgeleid van je #1 kans → reden om vandaag te beginnen en terug te komen.
+  - **Multi-foto push**: na frontaal-rapport prominente kaart om een 90°-zijfoto toe te voegen (ontgrendelt kaakhoek + neus-bovenliphoek).
+  - **Affiliate eerlijker** gemaakt (editorial "aanrader" + open disclosure i.p.v. spammy knop).
+  - **"Hoe het werkt / waarom de cijfers kloppen"** uitklap op de startpagina (credibility).
 - ⬜ Geen echte betaling — model = gratis scan + affiliate-links + creator-codes. Premium (save/compare) is voorlopig gratis om traction te bouwen.
 - ⬜ Nog geen influencer-test gedaan.
+- ⬜ "Data" nu lokaal benut (context, personalisatie, kaart, voortgang). Volgende: meerdere scans in een **lokale historie/trendlijn**; later optioneel geanonimiseerde aggregatie (met consent) om de bereiken te kalibreren.
+- QA-hook: `?demo=1` toont het rapport met synthetische data zonder camera (handig om snel te testen).
 - Bestanden: `~/glowscan/` (`index.html` + `README.md` + dit plan).
 
 ## De stappen — één voor één
