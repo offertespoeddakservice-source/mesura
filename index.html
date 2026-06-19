@@ -265,13 +265,14 @@
   <!-- CONFIRM -->
   <section class="screen" id="confirm">
     <h1>Klopt deze foto?</h1>
-    <p class="sub">Controleer of je gezicht scherp in beeld is, recht vooruit kijkt en de mal goed vult. Zo ja — analyseer.</p>
+    <p class="sub">Dit is de foto die we opmeten. Controleer hem goed — dit is je <b>definitieve</b> keuze.</p>
     <div class="card" style="text-align:center">
       <canvas id="cvConfirm" style="border-radius:14px;max-width:100%;border:1px solid var(--line)"></canvas>
       <div id="confirmChecks" style="margin:14px 0 0;text-align:left;font-size:13px;color:var(--muted)"></div>
-      <button class="btn" id="confirmPhoto" style="margin-top:16px">Analyseer deze foto</button>
+      <label class="check" id="confirmSureRow" style="margin:16px 0 2px;text-align:left;background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:13px 14px"><input type="checkbox" id="confirmSure"><span>Ik weet zeker dat ik <b>deze</b> foto wil gebruiken. Ik begrijp dat opnieuw scannen een <b>nieuwe, losse meting</b> geeft — niet bedoeld om net zo lang te scannen tot een cijfer me bevalt.</span></label>
+      <button class="btn" id="confirmPhoto" style="margin-top:12px" disabled>Analyseer deze foto</button>
       <button class="btn ghost" id="retakePhoto" style="margin-top:8px">Opnieuw maken</button>
-      <p class="foot" style="margin-top:10px">Zelfde foto = exact hetzelfde resultaat. Zorg elke meting voor dezelfde opstelling voor een eerlijke vergelijking.</p>
+      <p class="foot" style="margin-top:10px">Zelfde foto = exact hetzelfde resultaat. Eerlijke vergelijking lukt alleen als je elke keer dezelfde opstelling (licht, hoek, afstand) gebruikt.</p>
     </div>
   </section>
 
@@ -505,9 +506,11 @@ function showConfirmScreen(cnv,P){
   else checks.push({ok:true,txt:"Hoofd recht"});
   checks.push({ok:true,txt:"Meting is determinisch — dezelfde foto geeft altijd hetzelfde resultaat"});
   $("#confirmChecks").innerHTML=checks.map(ch=>`<p style="margin:4px 0"><span style="color:${ch.ok?"var(--good)":"var(--warn)"}">${ch.ok?"✓":"⚠"}</span> ${ch.txt}</p>`).join("");
+  $("#confirmSure").checked=false; $("#confirmPhoto").disabled=true; // elke keer opnieuw bevestigen
   show("confirm");
 }
-$("#confirmPhoto").addEventListener("click",()=>runReport());
+$("#confirmSure").addEventListener("change",e=>{ $("#confirmPhoto").disabled=!e.target.checked; });
+$("#confirmPhoto").addEventListener("click",()=>{ if($("#confirmSure").checked) runReport(); });
 $("#retakePhoto").addEventListener("click",()=>{ photos.front=null; show("capture"); startCam(); });
 
 // ================= GEOMETRY + METRICS =================
