@@ -31,6 +31,8 @@ Een **gratis, privé web-tool** die je gezicht écht opmeet (in millimeters) en 
   - **Multi-foto push**: na frontaal-rapport prominente kaart om een 90°-zijfoto toe te voegen (ontgrendelt kaakhoek + neus-bovenliphoek).
   - **Affiliate eerlijker** gemaakt (editorial "aanrader" + open disclosure i.p.v. spammy knop).
   - **"Hoe het werkt / waarom de cijfers kloppen"** uitklap op de startpagina (credibility).
+  - **Betrouwbaarheid GEVERIFIEERD op echt gezicht** (jun 2026): 3× zelfde opstelling = PD 57/58/58 mm (±1 mm), vs ±4 mm vóór de fix (horizontale iris + burst-mediaan van 7 frames). Liggend (andere houding) wijkt licht af, zoals verwacht. → kernklacht "zelfde hoofd, ander resultaat" is opgelost.
+  - **Geannoteerde eigen-overlay**: je foto groot, met gelabelde meetlijnen (pupilafstand, kaaklijn, breedte) als visueel bewijs. Rapport-tips nu inklapbaar (geen tekstmuur).
 - ⬜ Geen echte betaling — model = gratis scan + affiliate-links + creator-codes. Premium (save/compare) is voorlopig gratis om traction te bouwen.
 - ⬜ Nog geen influencer-test gedaan.
 - ⬜ "Data" nu lokaal benut (context, personalisatie, kaart, voortgang). Volgende: meerdere scans in een **lokale historie/trendlijn**; later optioneel geanonimiseerde aggregatie (met consent) om de bereiken te kalibreren.
