@@ -13,6 +13,8 @@
 <meta name="twitter:title" content="Mesura — Meet je gezicht">
 <meta name="twitter:description" content="Gratis gezichtsanalyse in echte mm. Geen rating, geen oordeel. Privé op je toestel.">
 <link rel="canonical" href="https://offertespoeddakservice-source.github.io/mesura/">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23b0604a'/><text x='50' y='73' font-family='Georgia,serif' font-size='60' font-weight='700' fill='%23fff' text-anchor='middle'>M</text></svg>">
+<meta name="theme-color" content="#b0604a">
 <style>
   :root{
     --bg:#f3ede2; --card:#fbf7ef; --card2:#efe8da; --line:#e0d6c4; --line2:#d0c3aa;
@@ -217,7 +219,17 @@
   .top3 li{counter-increment:t;display:flex;gap:13px;padding:12px 0;border-top:1px solid var(--line);align-items:flex-start}
   .top3 li::before{content:counter(t);flex:0 0 auto;width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;font-weight:700;font-family:var(--font-serif);display:flex;align-items:center;justify-content:center;font-size:15px;margin-top:1px}
   .top3 .t3b{font-weight:700;font-size:14.5px} .top3 .t3a{font-size:12.5px;color:var(--muted);margin-top:3px;line-height:1.45}
-</style>
+
+  /* screen transitions */
+  @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .screen.active{animation:fadeUp .22s ease both}
+
+  /* population context row — iets prominenter */
+  .refrow{font-size:12px;color:var(--muted);text-align:right;margin:-4px 0 3px;font-weight:500}
+
+  /* scroll to top */
+  #toTop{position:fixed;bottom:24px;right:18px;width:42px;height:42px;border-radius:50%;background:var(--accent);border:none;color:#fff;font-size:20px;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,.18);opacity:0;pointer-events:none;transition:opacity .2s;z-index:50;display:flex;align-items:center;justify-content:center;line-height:1}
+  #toTop.vis{opacity:1;pointer-events:auto}
 </style>
 </head>
 <body>
@@ -358,6 +370,8 @@
     <button class="btn ghost" id="backInfo">← Terug</button>
   </section>
 
+  <button id="toTop" aria-label="Naar boven">↑</button>
+
   <!-- REPORT -->
   <section class="screen" id="report">
     <h1>Je meetrapport</h1>
@@ -392,6 +406,8 @@ const photos={front:null,left:null,right:null}; // {src(Image/canvas), P(px land
       baseOptions:{modelAssetPath:"https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task"},
       runningMode:"IMAGE",numFaces:1});
     $("#enginePill").textContent="✓ engine gereed";
+    // re-enable "Start meting" if consent was already checked while engine was loading
+    if($("#consent").checked) $("#toInfo").disabled=false;
   }catch(e){ $("#enginePill").textContent="engine fout — klik om opnieuw te proberen"; $("#enginePill").style.cursor="pointer"; $("#enginePill").onclick=()=>location.reload(); }
 })();
 async function ensureMode(m){ if(curMode!==m){ await landmarker.setOptions({runningMode:m}); curMode=m; } }
@@ -403,7 +419,9 @@ const urlCode=(new URLSearchParams(location.search).get("code")||"").toUpperCase
 if(urlCode) sessionStorage.setItem("mesura_code",urlCode);
 
 // nav
-$("#consent").addEventListener("change",e=>$("#toInfo").disabled=!e.target.checked);
+// "Start meting" vereist zowel consent ÁLS engine geladen
+function updateStartBtn(){ $("#toInfo").disabled=!$("#consent").checked||!landmarker; }
+$("#consent").addEventListener("change",updateStartBtn);
 $("#toInfo").addEventListener("click",()=>show("info"));
 $("#toRescan").addEventListener("click",()=>{ctx.rescan=true; show("info");});
 $("#genderSeg").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
@@ -456,7 +474,14 @@ $("#analyzeUp").addEventListener("click",async()=>{
     const Pf=photos.front.P, ih=photos.front.src.naturalHeight||photos.front.src.height;
     if(turned(Pf)>0.09){ btn.disabled=false; btn.textContent="Analyseer"; $("#status").innerHTML="Let op: te gedraaid. Neem de foto <b>recht van voren</b> — of gebruik de camera-mal."; return; }
     if(D(Pf[L.top],Pf[L.chin])/ih<0.3){ btn.disabled=false; btn.textContent="Analyseer"; $("#status").innerHTML="Gezicht te klein in beeld. Vul meer van de foto met je gezicht — of gebruik de camera-mal."; return; }
-    runReport();
+    // Zet image om naar canvas zodat de confirm-flow (en drawOverlay) consistent werkt
+    const img=photos.front.src;
+    const cn=document.createElement("canvas");
+    cn.width=img.naturalWidth||img.width; cn.height=img.naturalHeight||img.height;
+    cn.getContext("2d").drawImage(img,0,0);
+    photos.front.src=cn; photos.front.result=null;
+    btn.disabled=false; btn.textContent="Analyseer";
+    showConfirmScreen(cn, photos.front.P);
   }catch(e){ btn.disabled=false; btn.textContent="Analyseer"; $("#status").textContent="Fout: "+e.message; }
 });
 
@@ -494,12 +519,18 @@ function loop(){
   else if(Math.abs(cy-0.45)>0.08){ msg=cy<0.45?"Iets omlaag":"Iets omhoog"; ok=false; }
   else if(yaw>0.06){ msg="Kijk recht in de lens"; ok=false; }
   else if(turned(lm.map(p=>({x:p.x,y:p.y})))>0.08){ msg="Hoofd iets rechter draaien"; ok=false; }
-  else msg="Perfect — hou vast";
-  valid=ok; st.textContent=msg; st.className="camstat "+(ok?"ok":"no"); sh.disabled=!ok;
+  else msg="";
+  valid=ok; sh.disabled=!ok;
   $("#ovalRing").setAttribute("stroke",ok?"#34d399":"#fbbf24");
   if(ok && !validSince) validSince=performance.now();
   if(!ok) validSince=0;
-  if(ok && !capturing && performance.now()-validSince>1500) captureCam(); // auto na 1.5s stabiel
+  if(ok && !capturing && performance.now()-validSince>1500){ captureCam(); return; }
+  // countdown: 3→2→1 terwijl gezicht stabiel is
+  if(ok && validSince && !capturing){
+    const t=performance.now()-validSince;
+    msg=t<600?"Stilhouden — 3…":t<1100?"Stilhouden — 2…":"Stilhouden — 1…";
+  }
+  st.textContent=msg||"Perfect — hou vast"; st.className="camstat "+(ok?"ok":"no");
 }
 async function captureCam(){
   const v=$("#video"); if(!v.videoWidth||!valid||capturing) return;
@@ -579,7 +610,13 @@ function showConfirmScreen(cnv,P){
 }
 $("#confirmSure").addEventListener("change",e=>{ $("#confirmPhoto").disabled=!e.target.checked; });
 $("#confirmPhoto").addEventListener("click",()=>{ if($("#confirmSure").checked) runReport(); });
-$("#retakePhoto").addEventListener("click",()=>{ photos.front=null; show("capture"); startCam(); });
+$("#retakePhoto").addEventListener("click",()=>{
+  photos.front=null;
+  show("capture");
+  // alleen camera starten als de camera-tab actief was (niet bij upload-flow)
+  const camTabOn=$("#paneCam").classList.contains("on");
+  if(camTabOn) startCam();
+});
 
 // ================= GEOMETRY + METRICS =================
 const L={chin:152,top:10,glab:9,subn:2,noseTip:1,nasion:168,rOut:33,rIn:133,lIn:362,lOut:263,
@@ -1002,7 +1039,7 @@ function mmContext(name,val){
   else if(z>=0.6&&z<1.4) word="iets boven gemiddeld";
   else word="boven gemiddeld";
   const who=ctx.gender==="man"?"man":ctx.gender==="vrouw"?"vrouw":"volw.";
-  return `${word} · ${who} ≈ ${avg} mm`;
+  return `<b>${word}</b> · ${who} ≈ ${avg} mm`;
 }
 // ---- personalisatie: één regel die echt over JOUW meting gaat (combineert "voor jou" + maakbaarheid) ----
 function personalLine(m){
@@ -1065,12 +1102,16 @@ function buildShareCard(){
     x.fillStyle="#b0604a";x.font="600 38px Georgia, serif";x.fillText(v,sx+18,sy+64,sw-36);
   });
   // mission + footer
-  x.fillStyle="#322c24";x.font="italic 30px Georgia, serif";
-  x.fillText("Meten, niet beoordelen.",64,1052);
-  x.fillStyle="#7c7163";x.font="24px -apple-system, sans-serif";
-  x.fillText("Doe je eigen gratis meting — privé, op je toestel:",64,1116);
-  x.fillStyle="#b0604a";x.font="600 28px -apple-system, sans-serif";
-  x.fillText("offertespoeddakservice-source.github.io/mesura",64,1156);
+  x.fillStyle="#322c24";x.font="italic 32px Georgia, serif";
+  x.fillText("Meten, niet beoordelen.",64,1058);
+  // brand name prominent
+  x.fillStyle="#b0604a";x.font="700 44px Georgia, serif";
+  x.fillText("MESURA",64,1118);
+  x.fillStyle="#7c7163";x.font="22px -apple-system, sans-serif";
+  x.fillText("Gratis & privé gezichtsmeting in echte mm.",64+x.measureText("MESURA").width+24,1118);
+  // URL klein en subtiel onderaan
+  x.fillStyle="#9b9080";x.font="17px -apple-system, sans-serif";
+  x.fillText("offertespoeddakservice-source.github.io/mesura",64,1162);
   x.fillStyle="#b0604a";x.fillRect(0,H-14,W,14);
   return c;
 }
@@ -1241,6 +1282,14 @@ function demoReport(){
   renderMetrics(lastMetrics);show("report");
 }
 if(new URLSearchParams(location.search).has("demo")) setTimeout(demoReport,300);
+
+// scroll-to-top knop
+(()=>{
+  const btn=$("#toTop");
+  if(!btn) return;
+  window.addEventListener("scroll",()=>btn.classList.toggle("vis",window.scrollY>280),{passive:true});
+  btn.addEventListener("click",()=>window.scrollTo({top:0,behavior:"smooth"}));
+})();
 </script>
 </body>
 </html>
